@@ -1,15 +1,20 @@
 <div align="center">
 
-<img src="assets/palakaya-logo.png" alt="Palakaya Logo" width="220"/>
+<img src="assets/palakaya-icon.png" alt="Palakaya" width="120"/>
 
-**Catch. Connect. Get a Fair Price.**
+# Palakaya
+
+**A Catch-Logging and Fair-Price Marketplace for Municipal Filipino Fisherfolk**
+
+*Catch. Connect. Get a Fair Price.*
 
 [![Swift](https://img.shields.io/badge/Swift-5.10-F05138?style=flat-square&logo=swift&logoColor=white)](https://swift.org)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-iOS%2017%2B-0D96F6?style=flat-square&logo=apple&logoColor=white)](https://developer.apple.com/xcode/swiftui/)
-[![SwiftData](https://img.shields.io/badge/Persistence-SwiftData-8E8E93?style=flat-square)](#)
+[![SwiftData](https://img.shields.io/badge/Offline-SwiftData-8E8E93?style=flat-square)](#)
+[![Supabase](https://img.shields.io/badge/Cloud-Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](#cloud-backend)
+[![Gemini](https://img.shields.io/badge/AI%20Advisor-Google%20Gemini-4285F4?style=flat-square&logo=googlegemini&logoColor=white)](#7-catch--market-advisor-ai-companion)
 [![Platform](https://img.shields.io/badge/Platform-iOS-lightgrey?style=flat-square&logo=apple&logoColor=white)](#)
-[![Prototype](https://img.shields.io/badge/Web%20Prototype-HTML%2FJS-E34F26?style=flat-square&logo=html5&logoColor=white)](#web-prototype)
-[![Status](https://img.shields.io/badge/Status-Capstone%20Prototype-blue?style=flat-square)](#)
+[![Status](https://img.shields.io/badge/Status-Finals%20Build-blue?style=flat-square)](#implementation-status)
 [![License](https://img.shields.io/badge/License-Private-red?style=flat-square)](#license)
 
 *A documented, price-checked alternative to consignacion — one catch at a time.*
@@ -28,18 +33,20 @@
 3. [What Palakaya Does](#what-palakaya-does)
 4. [Intended Users & Stakeholders](#intended-users--stakeholders)
 5. [Core Features](#core-features)
-6. [System Illustration](#system-illustration)
-7. [Scope & Boundaries](#scope--boundaries)
-8. [Tech Stack](#tech-stack)
-9. [Project Structure — iOS App](#project-structure--ios-app)
-10. [Data Models](#data-models)
-11. [Design System](#design-system)
-12. [Web Prototype](#web-prototype)
-13. [Figma Prototype](#figma-prototype)
-14. [Getting Started](#getting-started)
-15. [Roadmap](#roadmap)
-16. [References](#references)
-17. [License](#license)
+6. [Implementation Status](#implementation-status)
+7. [System Illustration](#system-illustration)
+8. [Scope & Boundaries](#scope--boundaries)
+9. [Tech Stack](#tech-stack)
+10. [Architecture (MVC)](#architecture-mvc)
+11. [Project Structure — iOS App](#project-structure--ios-app)
+12. [Data Models](#data-models)
+13. [Cloud Backend](#cloud-backend)
+14. [Design System](#design-system)
+15. [Figma Prototype](#figma-prototype)
+16. [Getting Started](#getting-started)
+17. [Roadmap](#roadmap)
+18. [References](#references)
+19. [License](#license)
 
 </details>
 
@@ -57,10 +64,10 @@
 
 The app lets a fisher log each catch by species, weight, fishing ground, and date/time immediately upon landing, checks every listed catch against a rolling **fair-price benchmark**, matches fishers directly with verified buyers, and scores every completed sale for **price alignment** against that benchmark. Every price-checked transaction simultaneously feeds anonymized, aggregated regional data back to BFAR and LGU fisheries offices — the fisher-facing tool *is* the mechanism by which that government-facing data gets collected.
 
-This repository contains two artifacts of the same project:
+This repository contains:
 
-- **`Palakaya/`** — a native **SwiftUI + SwiftData** iOS app implementing the full product.
-- **A standalone HTML/CSS/JS prototype** ([`palakaya-2.html`](#web-prototype)) — a single-file, phone-frame simulation of the same flows, used for early design iteration.
+- **`Palakaya/`**: a native **SwiftUI** iOS app, organized as Model–View–Controller, that works offline with **SwiftData** and syncs to the cloud when there is signal.
+- **`supabase/`**: the cloud backend. It has the **Supabase** Postgres schema with row-level security, the marketplace and fair-price views, and the free **AI Advisor** Edge Function (Google Gemini).
 
 > **Capstone Project (BSCS III, 2026)** — Manuel S. Enverga University Foundation, Lucena City
 > Valencia, Jhon Lloyd M. · `jhonlloydval@gmail.com`
@@ -153,7 +160,7 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 
 <br/>
 
-- "This month" snapshot: total kilos caught, estimated income, and trip count at a glance.
+- "This month" snapshot: total kilos caught, recorded sales, and days fished, all computed from the fisher's own records.
 - Filterable by **All**, **Available**, or **Sold** to see what still needs a buyer.
 - Each entry shows its fair-price range next to the actual sale price, so a fisher can see at a glance whether a past sale held up.
 
@@ -165,9 +172,9 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 
 <br/>
 
-- A rolling regional reference range per species, computed from aggregated recent marketplace transactions and refreshed as new sales are logged.
-- Shown as a **regional range, not a single guess** — visible to the fisher before they ever agree to sell.
-- Flags species/regions with too little transaction data to trust yet; the more sales logged, the more accurate the benchmark becomes.
+- A rolling reference range per species, computed in the cloud from **real recorded sales in the last 30 days**: the middle 50% of sold prices (25th–75th percentile), with the median as the midpoint.
+- A species gets a live range only once it has **at least 5 sales**, so no single fisher's price can be singled out. Until then the app shows a built-in regional **estimate** and labels it that way.
+- Shown as a **range, not a single guess**, before the fisher ever agrees to sell. For example: "Fair price from 7 recent sales: ₱180–₱205/kg".
 
 ### 5. Marketplace Listing & Buyer Matching
 
@@ -201,9 +208,11 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 
 <br/>
 
-- A plain-language AI companion, grounded in a fisher's own logged catch history, that answers questions about historically productive fishing grounds and current fair-price ranges.
-- Explains *why* a logged sale diverged from the benchmark.
-- Meets fishers in the language they already use (Filipino/Tagalog-first).
+- A real AI companion. The fisher can type any question, or tap a suggested one.
+- Answers are grounded in the fisher's own catches and sales and the current fair-price ranges, and they cover productive fishing grounds, prices, and *why* a sale fell below the benchmark.
+- Replies in the language the fisher writes in (Filipino, English, or Taglish), in 2–5 plain sentences. The Advisor says when a price is only an estimate and never invents prices, buyers, weather, or rules.
+- **Free to run.** It uses Google Gemini's free tier through a Supabase Edge Function, so the AI key stays on the server and never ships in the app. Only signed-in fishers can use it.
+- **Offline fallback.** With no signal, or when the free limit is reached, a built-in rule-based advisor answers from the same on-device data.
 
 ### 8. Catch & Income Reports
 
@@ -216,7 +225,7 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 - Consolidates a fisher's catch history, transaction log, and price-alignment trend into a savable, exportable personal report — monthly totals, average price alignment, and top species.
 - Exportable and shareable on demand; the same records roll up into the BFAR/LGU aggregate reporting layer.
 
-### 9. Buyer Verification
+### 9. Buyer Verification *(planned)*
 
 - Verifies buyer registration details (vendor / retailer / cooperative status).
 - Surfaces buyer ratings and transaction history to fishers before a listing is agreed.
@@ -224,7 +233,30 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 
 ### Low-Bandwidth / Offline Entry
 
-Full marketplace listing, benchmarking, and report generation require an internet-enabled device. An **SMS/USSD fallback** (`*143#`) is provided for **manual catch entry and fair-price lookup only** when connectivity is unavailable at the landing site, syncing automatically once the fisher is back online.
+The app is **offline-first**. Catches, listings, and sales are saved on the phone right away, even with no signal at the landing site, and uploaded automatically on the next successful sync. A fisher can also tap the Wi-Fi button on Home to sync now. After login, the fisher's records download back from the cloud, so a reinstall or a new phone keeps their history. An SMS/USSD channel for phones without data is planned (see [Roadmap](#roadmap)).
+
+---
+
+## Implementation Status
+
+What works in this build:
+
+| Feature | Status in the iOS app |
+|---|---|
+| Register / log in (mobile + password), separate data per account | ✅ Working: local account plus Supabase Auth |
+| Log catch (species search, weight, fishing ground, date & time) | ✅ Working |
+| My Catch with filters and monthly totals | ✅ Working, from real records |
+| Fair-price benchmark | ✅ Working: from real cloud sales (≥ 5), otherwise a labelled estimate |
+| Create listing, with a warning when priced below the benchmark | ✅ Working |
+| Marketplace of other fishers' listings, with search and Call / Text | ✅ Working, from the cloud |
+| Buyer matches and record sale with price-alignment score | ✅ Working (buyer offers are sample buyers in this build) |
+| AI Advisor | ✅ Working: Google Gemini (free) with offline fallback |
+| Notifications | ✅ Built from real sales, listings, sync status, and price updates |
+| Monthly report and share | ✅ Working, from real records |
+| Cloud sync (upload and download) with row-level security | ✅ Working |
+| Anonymized regional summary for BFAR / LGU (`regional_catch_summary`) | ✅ In the database; no dashboard yet |
+| Buyer accounts and buyer verification | 🔜 Planned |
+| SMS / USSD entry | 🔜 Planned |
 
 ---
 
@@ -251,7 +283,6 @@ The figure traces how a single fisher interaction becomes both a fisher-facing m
 **Palakaya does:**
 - Cover catch logging, fair-price benchmarking, buyer matching, and aggregate fisheries reporting end-to-end.
 - Model **municipal, small-scale capture fisheries only**, consistent with RA 8550's definition.
-- Provide an SMS/USSD channel for manual catch entry and fair-price lookup only.
 
 **Palakaya deliberately does not:**
 - Itself buy, sell, or physically handle fish, negotiate, or mediate the exchange between fisher and buyer.
@@ -265,11 +296,40 @@ The figure traces how a single fisher interaction becomes both a fisher-facing m
 
 | Layer | Technology |
 |---|---|
-| **iOS App UI** | SwiftUI (`@Observable` state, `NavigationStack`, sheets/detents) |
-| **iOS App Persistence** | SwiftData (`ModelContainer` / `@Model`) — on-device storage, no backend required |
-| **iOS App Language** | Swift 5.10, iOS 17+ |
-| **Web Prototype** | Single-file HTML5 + CSS custom properties + vanilla JavaScript (no build step, no dependencies) |
-| **Design Prototyping** | Figma |
+| **iOS app** | Swift 5, SwiftUI (`@Observable`, `NavigationStack`, sheets), iOS 17+ |
+| **On-device storage** | SwiftData (`@Model`), so the app works offline at the landing site |
+| **Cloud database & login** | Supabase: Postgres, Auth, row-level security, and SQL views for the marketplace, fair prices, and regional reports |
+| **AI Advisor** | Google Gemini (free tier), called from a Supabase Edge Function (Deno / TypeScript) |
+| **Networking** | `URLSession` against Supabase's REST APIs, with no third-party packages |
+| **Security** | Session tokens in the iOS Keychain, salted password hashes on device, API keys kept out of the repo |
+| **Design** | Figma |
+
+---
+
+## Architecture (MVC)
+
+```
+ ┌──────────── View (SwiftUI) ────────────┐      ┌──────── Model ─────────┐
+ │ Screens: Home, Catch, Market, Advisor, │      │ SwiftData @Model:      │
+ │ Profile, Reports, Sales, Onboarding    │      │ UserAccount, CatchRecord│
+ │ Only shows data and forwards taps      │      │ AdvisorMessageRecord   │
+ └───────────────┬────────────────────────┘      │ + reference data       │
+                 │ calls                         └──────────▲─────────────┘
+ ┌───────────────▼──── Controller ─────────────────────────┐│ reads / writes
+ │ AuthController · CatchController · MarketController     ├┘
+ │ ReportsController · AdvisorController · SyncController  │
+ │ NotificationsController                                 │
+ └───────────────┬─────────────────────────────────────────┘
+                 │ uses
+ ┌───────────────▼──── Services ───────────────────────────┐      ┌──── Supabase ────┐
+ │ SupabaseClient · SyncService · FairPriceService         │─────▶│ Postgres + Auth  │
+ │ AppConfig · KeychainStore                               │      │ Edge Function ──▶ Gemini
+ └─────────────────────────────────────────────────────────┘      └──────────────────┘
+```
+
+- **Models** hold data only (`Palakaya/Models`).
+- **Views** never touch the database directly. They call a **Controller**, which applies the business rules: validation, price-alignment scoring, report totals, and sync. They show errors in a single alert.
+- **Services** wrap the cloud: auth, upload and download sync, fair prices, and the AI Advisor call.
 
 ---
 
@@ -278,45 +338,46 @@ The figure traces how a single fisher interaction becomes both a fisher-facing m
 ```
 Palakaya/
 ├── Palakaya.xcodeproj/
-└── Palakaya/
-    ├── App/
-    │   ├── PalakayaApp.swift        # @main entry point, SwiftData ModelContainer, demo-account seeding
-    │   ├── RootView.swift           # Top-level phase switch (onboarding/login/register/main)
-    │   ├── MainTabView.swift        # 5-tab navigation shell + custom tab bar
-    │   └── AppState.swift           # @Observable app-wide session/navigation/form state
-    │
-    ├── Components/
-    │   ├── Theme.swift              # Color palette, buttons, shared UI primitives
-    │   └── SparklineChart.swift     # Lightweight trend chart component
-    │
-    ├── Models/
-    │   ├── Models.swift             # SwiftData @Model types: UserAccount, CatchRecord, AdvisorMessageRecord
-    │   └── StaticData.swift         # Seed/reference data (fair-price DB, buyers, etc.)
-    │
-    └── Views/
-        ├── Onboarding/              # OnboardingView, LoginView, RegisterView
-        ├── Home/                    # HomeView, NotificationsSheetView
-        ├── Catch/                   # MyCatchView, LogCatchFlowView, CatchDetailsView
-        ├── Market/                  # MarketView, CreateListingView, ListingDetailsView,
-        │                            # OtherListingDetailsView, BuyerMatchesView, PriceExplorerView
-        ├── Sales/                   # RecordSaleView, SaleRecordedView
-        ├── Reports/                 # AdvisorView, ReportsView
-        └── Profile/                 # ProfileView
+├── Palakaya/
+│   ├── App/            PalakayaApp (entry point, demo seed), RootView, MainTabView, AppState
+│   ├── Models/         UserAccount, CatchRecord, AdvisorMessageRecord, StaticData (species, estimates)
+│   ├── Controllers/    Auth, Catch, Market, Reports, Advisor, Sync, Notifications
+│   ├── Services/       SupabaseClient, SyncService, FairPriceService, AppConfig, KeychainStore
+│   ├── Utilities/      InputParsing (mobile, weight), PasswordHasher, DateFormatting
+│   ├── Components/     Theme (colors, buttons), SparklineChart
+│   ├── Config/         Secrets.plist (git-ignored: Supabase URL + publishable key)
+│   └── Views/
+│       ├── Onboarding/ OnboardingView, LoginView, RegisterView
+│       ├── Home/       HomeView, NotificationsSheetView
+│       ├── Catch/      MyCatchView, LogCatchFlowView, CatchDetailsView
+│       ├── Market/     MarketView, CreateListingView, ListingDetailsView,
+│       │               OtherListingDetailsView, BuyerMatchesView, PriceExplorerView
+│       ├── Sales/      RecordSaleView, SaleRecordedView
+│       ├── Reports/    AdvisorView, ReportsView
+│       └── Profile/    ProfileView, ProfileInfoView
+└── supabase/
+    ├── schema.sql                 full database setup (tables, security, views)
+    ├── 002_market.sql             marketplace view (migration)
+    ├── 003_fair_prices.sql        fair prices from real sales (migration)
+    ├── functions/advisor/index.ts AI Advisor Edge Function (Gemini)
+    ├── Secrets.example.plist      template for Palakaya/Config/Secrets.plist
+    └── SETUP.md                   step-by-step cloud + AI setup
 ```
 
-The app is organized around a 5-tab shell (**Home · Catch · Market · Advisor · Profile**) driven by a single `AppState` observable object and a `NavigationStack` with a typed `Route` enum, mirroring the screen flow first validated in the HTML prototype.
+The app is a 5-tab shell (**Home · Catch · Market · Advisor · Profile**) driven by one `AppState` observable object and a `NavigationStack` with a typed `Route` enum.
 
 ---
 
 ## Data Models
 
-SwiftData `@Model` classes defined in `Models/Models.swift`:
+On-device SwiftData models (`Palakaya/Models`):
 
 ```swift
 @Model final class UserAccount {
+    var id: UUID
     var fullName: String
-    var mobile: String
-    var password: String
+    var mobile: String            // normalized digits, e.g. 09172345678
+    var passwordHash: String      // salted SHA-256, never plain text
     var municipality: String
     var province: String
     var landingSite: String
@@ -325,40 +386,62 @@ SwiftData `@Model` classes defined in `Models/Models.swift`:
 }
 
 @Model final class CatchRecord {
+    var id: UUID
+    var ownerID: UUID?            // the account that logged it
     var species: String
-    var weight: Double
+    var weight: Double            // kg
     var ground: String
     var timeLabel: String
     var dateLogged: Date
-    var statusRaw: String          // available | listed | sold
-    var price: Double?
+    var statusRaw: String         // available | listed | sold
+    var price: Double?            // ₱ per kg
     var saleAmount: Double?
     var buyerName: String?
-    var alignment: Int?            // price-alignment score
+    var alignment: Int?           // price-alignment score, % of the benchmark midpoint
     var buyersInterested: Int?
     var hasPhoto: Bool
+    var needsSync: Bool           // true until uploaded to the cloud
 }
 
 @Model final class AdvisorMessageRecord {
+    var id: UUID
+    var ownerID: UUID?
     var isUser: Bool
     var text: String
     var timestamp: Date
 }
 ```
 
-On first launch, `PalakayaApp` seeds a demo fisher account (`Mang Jose Dela Cruz`) and four sample catch records so the app is fully explorable without manual setup.
+On first launch the app seeds a demo fisher (`Mang Jose Dela Cruz`) with four sample catches, so it is explorable right away.
+
+---
+
+## Cloud Backend
+
+Supabase (Postgres) tables and views, defined in [`supabase/schema.sql`](supabase/schema.sql):
+
+| Object | What it holds | Who can read it |
+|---|---|---|
+| `profiles` | Fisher name, mobile, municipality, province, landing site | Only that fisher |
+| `catches` | Every catch, listing, and sale | Only the fisher who owns it (row-level security) |
+| `market_listings` (view) | Other fishers' listed catches: species, kg, price, first name, landing site, contact number | Signed-in users |
+| `fair_prices` (view) | Per species, last 30 days of sales: p25 / median / p75, only when ≥ 5 sales | Signed-in users |
+| `regional_catch_summary` (view) | Monthly totals by province and species for BFAR / LGU, anonymized, groups of ≥ 5 only | Signed-in users |
+| Edge Function `advisor` | AI Advisor (Google Gemini); checks the user is logged in | Signed-in users |
+
+People who are not logged in cannot read anything. Full setup steps are in [`supabase/SETUP.md`](supabase/SETUP.md).
 
 ---
 
 ## Design System
 
-The app's palette is centralized in `Components/Theme.swift` and mirrors the web prototype's CSS custom properties exactly, built around a deep-sea-to-aqua brand gradient.
+Colors come from the Palakaya logo (ocean blue, navy, sea teal) and are centralized in `Components/Theme.swift`.
 
 | Token | Hex | Usage |
 |---|---|---|
-| `pkDark` | `#085078` | Primary brand — buttons, active states, gradient start |
-| `pkAqua` | `#85D8CE` | Gradient end, secondary accents |
-| `pkNavy` | `#07344C` | Deep accents |
+| `pkDark` | `#0261A7` | Primary brand: buttons, active states, gradient start |
+| `pkNavy` | `#01447E` | Wordmark navy, gradient end, deep accents |
+| `pkAqua` | `#2ED5CC` | Sea-teal accents, charts |
 | `pkBg` | `#F5F8F8` | Page backgrounds |
 | `pkSurface` | `#FFFFFF` | Cards, sheets |
 | `pkSurface2` | `#EDF7F6` | Secondary surfaces, static rows |
@@ -370,23 +453,7 @@ The app's palette is centralized in `Components/Theme.swift` and mirrors the web
 | `pkDanger` / `pkDangerBg` | `#C9483E` / `#FBEAE8` | Below-benchmark / error status |
 | `pkInfo` / `pkInfoBg` | `#1F6FA3` / `#E7F1F7` | Informational callouts |
 
----
-
-## Web Prototype
-
-<div align="center">
-  <img src="assets/ppt/PALAKAYA-9.png" alt="Web prototype phone-frame preview" width="900"/>
-</div>
-
-<br/>
-
-Alongside the iOS app, the repository includes a standalone HTML/CSS/JS prototype (single file, no build step or dependencies) that simulates the same product inside a phone-frame browser mockup. It was used to iterate on flows and screens — onboarding, login/register, home, catch logging & editing, marketplace, buyer matching, sale recording, price explorer, reports, chat, connectivity/offline settings, SMS/USSD simulator, privacy, help center, and about — before they were implemented natively in SwiftUI.
-
-To view it, simply open the HTML file in a browser:
-
-```bash
-open palakaya-2.html
-```
+Buttons and text fields are at least 48–52 pt tall for easy tapping with wet or gloved hands.
 
 ---
 
@@ -402,24 +469,28 @@ An interactive Figma prototype tracking the same flows is published at:
 
 ### Prerequisites
 
-- Xcode 15+ (Swift 5.10, iOS 17 SDK or later)
-- macOS with Xcode command-line tools installed
-- An iOS Simulator or physical device running iOS 17+
+- macOS with Xcode 15 or later (iOS 17 SDK or later) and an iOS Simulator runtime installed
+  (Xcode → Settings → Components)
+- Optional, for cloud sync and the AI Advisor: a free [Supabase](https://supabase.com) project and a free
+  [Google AI Studio](https://aistudio.google.com/apikey) key
 
-### Installation
+### Run the app
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/your-org/palakaya.git
-cd palakaya/Palakaya
-
-# 2. Open the Xcode project
+git clone https://github.com/jhonlloydval/Palakaya.git
+cd Palakaya
 open Palakaya.xcodeproj
-
-# 3. Select a simulator (e.g. iPhone 15 Pro) and run (⌘R)
 ```
 
-No backend, API keys, or `.env` configuration are required — the app runs entirely on-device using SwiftData, with a demo account seeded automatically on first launch (mobile: `0917 234 5678`, password: `password`).
+Pick an iPhone simulator and press **⌘R**. Log in with the demo account: mobile `09172345678`, password `password`.
+
+Without any setup the app runs **fully offline**: your data stays on the phone and the Advisor uses its built-in answers.
+
+### Turn on the cloud and the AI Advisor (optional, free)
+
+1. Follow [`supabase/SETUP.md`](supabase/SETUP.md) to create the database, run `schema.sql`, and deploy the `advisor` function with your `GEMINI_API_KEY` secret.
+2. Copy `supabase/Secrets.example.plist` to `Palakaya/Config/Secrets.plist` and fill in your Supabase URL and publishable key.
+   That file is git-ignored, so keys never reach GitHub.
 
 ---
 
@@ -437,10 +508,14 @@ No backend, API keys, or `.env` configuration are required — the app runs enti
 | Fair-price benchmarking engine | ✅ Complete |
 | Marketplace listing & buyer matching | ✅ Complete |
 | Transaction recording & price-alignment scoring | ✅ Complete |
-| Catch & Market Advisor (AI companion, static demo) | ✅ Complete |
-| Catch & income report generation | ✅ Complete |
-| SMS/USSD low-bandwidth simulator | ✅ Complete |
-| Native SwiftUI/SwiftData iOS implementation | ✅ Complete |
+| Catch & Market Advisor (real AI with Google Gemini, offline fallback) | ✅ Complete |
+| Catch & income report generation and sharing | ✅ Complete |
+| Native SwiftUI iOS app (MVC) with offline storage | ✅ Complete |
+| Cloud database, login, and two-way sync (Supabase, row-level security) | ✅ Complete |
+| Shared marketplace and fair prices from real sales | ✅ Complete |
+| Buyer accounts and buyer verification | 🔜 Planned |
+| SMS/USSD entry for phones without data | 🔜 Planned |
+| BFAR / LGU dashboard on top of `regional_catch_summary` | 🔜 Planned |
 | In-app payment & escrow so sales can settle without leaving Palakaya | 🔜 Planned |
 | Full SMS/USSD marketplace transactions (not just entry & lookup) | 🔜 Planned |
 | Partnership toward a government-audited price index | 🔜 Planned |
@@ -476,10 +551,8 @@ Private and proprietary — capstone project. All rights reserved. Unauthorized 
 
 <div align="center">
 
-<img src="assets/palakaya-icon.png" alt="Palakaya" width="64"/>
+<img src="assets/palakaya-logo.png" alt="Palakaya — Catch. Connect. Get a Fair Price." width="240"/>
 
 **Palakaya** — BSCS III Capstone, 2026 · Manuel S. Enverga University Foundation, Lucena City
-
-*Catch. Connect. Get a Fair Price.*
 
 </div>
