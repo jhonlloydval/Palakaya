@@ -14,6 +14,7 @@ enum MarketController {
         let municipality: String?
         let contact_mobile: String?
         let offer_count: Int?
+        let photo_url: String?
     }
 
     static func refresh(appState: AppState) async {
@@ -40,6 +41,6 @@ enum MarketController {
             seller: row.seller_first_name, rating: nil, site: site.isEmpty ? "Location not set" : site,
             distance: nil, fair: FAIR_DB[row.species].map { price >= $0.low } ?? true,
             fresh: Calendar.current.isDateInToday(row.caught_at), contactMobile: row.contact_mobile,
-            offerCount: row.offer_count ?? 0)
+            offerCount: row.offer_count ?? 0, photoURL: row.photo_url)
     }
 }

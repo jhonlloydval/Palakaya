@@ -23,6 +23,7 @@ struct CatchController {
         record.ground = ground
         record.dateLogged = date
         record.timeLabel = date.pkTimeLabel
+        if record.photoData != photo { record.photoURL = nil }
         record.photoData = photo
         record.hasPhoto = photo != nil
         record.needsSync = true

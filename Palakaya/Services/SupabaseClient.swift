@@ -117,6 +117,30 @@ final class SupabaseClient {
         }
     }
 
+    /// Uploads a JPEG to a public Storage bucket (replacing any file at that path) and returns its public URL.
+    func uploadPublicJPEG(_ data: Data, bucket: String, path: String) async throws -> String {
+        func send() async throws {
+            guard let base = AppConfig.supabaseURL, let key = AppConfig.supabaseAnonKey,
+                  let url = URL(string: "storage/v1/object/\(bucket)/\(path)", relativeTo: base) else { throw CloudError.notConfigured }
+            guard let accessToken else { throw CloudError.notSignedIn }
+            var req = URLRequest(url: url)
+            req.httpMethod = "POST"
+            req.timeoutInterval = 60
+            req.setValue(key, forHTTPHeaderField: "apikey")
+            req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+            req.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
+            req.setValue("true", forHTTPHeaderField: "x-upsert")
+            let (body, response) = try await session.upload(for: req, from: data)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            guard (200..<300).contains(status) else {
+                throw CloudError.server(status, String(data: body, encoding: .utf8) ?? "")
+            }
+        }
+        do { try await send() } catch CloudError.server(401, _) { try await refresh(); try await send() }
+        guard let base = AppConfig.supabaseURL else { throw CloudError.notConfigured }
+        return base.appendingPathComponent("storage/v1/object/public/\(bucket)/\(path)").absoluteString
+    }
+
     /// Deletes one row by id (Row Level Security still applies).
     func delete(_ table: String, id: UUID) async throws {
         let path = "rest/v1/\(table)?id=eq.\(id.uuidString.lowercased())"

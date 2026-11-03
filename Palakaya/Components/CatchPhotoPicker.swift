@@ -128,3 +128,29 @@ struct CatchPhotoBanner: View {
         }
     }
 }
+
+/// Another fisher's catch photo, loaded from the cloud, or the wave placeholder.
+struct RemoteCatchPhoto: View {
+    var url: String?
+    var body: some View {
+        if let url, let link = URL(string: url) {
+            AsyncImage(url: link) { phase in
+                if let image = phase.image {
+                    image.resizable().scaledToFill()
+                } else {
+                    ZStack {
+                        Color.pkSurface2
+                        if phase.error == nil { ProgressView() }
+                        else { Image(systemName: "water.waves").font(.system(size: 36)).foregroundColor(.pkAqua) }
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 200)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .accessibilityLabel("Photo of this catch")
+        } else {
+            CatchPhotoBanner(photo: nil)
+        }
+    }
+}

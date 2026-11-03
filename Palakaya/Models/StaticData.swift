@@ -45,6 +45,7 @@ struct OtherListing: Identifiable {
     var fresh: Bool = false
     var contactMobile: String? = nil
     var offerCount: Int = 0
+    var photoURL: String? = nil
 }
 
 /// Shown only when cloud sync is not set up, and labelled as samples in the Market.

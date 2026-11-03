@@ -17,10 +17,7 @@ struct OtherListingDetailsView: View {
             let total = Int(item.weight * Double(item.price))
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 18).fill(Color.pkSurface2).frame(height: 144)
-                        Image(systemName: "water.waves").font(.system(size: 40)).foregroundColor(.pkAqua)
-                    }.padding(.bottom, 16)
+                    RemoteCatchPhoto(url: item.photoURL).padding(.bottom, 16)
 
                     Text(item.species).font(.system(size: 22, weight: .bold))
                     Text("\(item.weight.pkTrimmed) kg available").font(.system(size: 13)).foregroundColor(.pkSub).padding(.bottom, 12)
