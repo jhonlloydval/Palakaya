@@ -8,25 +8,37 @@ struct SeaTodayCard: View {
     @State private var conditions: SeaConditions?
     @State private var failed = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage("seaTodayExpanded") private var expanded = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
             sky
             if let c = conditions {
                 LiveSea(waveHeight: c.waveMax ?? 0.3, wind: c.windMax, animated: !reduceMotion)
-                    .frame(height: 92)
+                    .frame(height: expanded ? 92 : 44)
             }
             VStack(alignment: .leading, spacing: 0) {
-                header
-                if let c = conditions { content(c) } else { placeholder }
+                if let c = conditions {
+                    if expanded { header; content(c) } else { compact(c) }
+                } else {
+                    header
+                    placeholder
+                }
             }
-            .padding(20)
+            .padding(expanded ? 20 : 16)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            guard conditions != nil else { return }
+            withAnimation(reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.85)) { expanded.toggle() }
         }
         .frame(maxWidth: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .shadow(color: Color(hex: "01447E").opacity(0.18), radius: 18, y: 10)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilitySummary)
+        .accessibilityHint(expanded ? "Double tap to show less" : "Double tap to show details")
+        .accessibilityAddTraits(.isButton)
         .task(id: municipality + province) { await load() }
     }
 
@@ -42,6 +54,31 @@ struct SeaTodayCard: View {
         return LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
+    /// One row: temperature, sky, place and the verdict, with room for the waves underneath.
+    private func compact(_ c: SeaConditions) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: c.sky.symbol)
+                    .symbolRenderingMode(.hierarchical)
+                    .font(.system(size: 28))
+                    .foregroundColor(.white)
+                Text("\(Int(c.temperature.rounded()))° · Sea today")
+                    .font(.system(size: 18, weight: .bold, design: .rounded)).foregroundColor(.white)
+                Spacer(minLength: 4)
+                verdictPill(c.verdict)
+            }
+            Text("\(c.place) · waves \(c.waveMax.map { String(format: "%.1f m", $0) } ?? "–") · wind \(Int(c.windMax.rounded())) km/h · rain \(c.rainChance)%")
+                .font(.system(size: 13.5, weight: .medium)).foregroundColor(.white.opacity(0.88))
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 4) {
+                Text("Tap for details").font(.system(size: 12, weight: .medium))
+                Image(systemName: "chevron.down").font(.system(size: 10, weight: .bold))
+            }
+            .foregroundColor(.white.opacity(0.75))
+            .padding(.bottom, 22)
+        }
+    }
+
     private var header: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
@@ -50,7 +87,10 @@ struct SeaTodayCard: View {
                     .font(.system(size: 13)).foregroundColor(.white.opacity(0.7))
             }
             Spacer()
-            if let c = conditions { verdictPill(c.verdict) }
+            if let c = conditions {
+                verdictPill(c.verdict)
+                Image(systemName: "chevron.up").font(.system(size: 12, weight: .bold)).foregroundColor(.white.opacity(0.8))
+            }
         }
     }
 
