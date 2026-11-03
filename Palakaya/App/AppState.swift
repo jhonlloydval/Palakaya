@@ -75,6 +75,8 @@ final class AppState {
     var showWelcomeTour = false
     /// Why the last upload failed, shown on the Connectivity page. Nil when the last sync worked.
     var lastSyncError: String?
+    /// Bumped when cloud fair prices arrive, so screens showing prices redraw.
+    var pricesVersion = 0
     var errorMessage: String?
     var historyFilter = "All"
 
@@ -125,7 +127,11 @@ final class AppState {
         path = NavigationPath()
     }
 
+    /// Account to open automatically on the next launch ("Keep me logged in").
+    static let rememberedUserKey = "rememberedUserID"
+
     func logout() {
+        UserDefaults.standard.removeObject(forKey: Self.rememberedUserKey)
         SupabaseClient.shared.signOut()
         phase = .onboarding
         obStep = 0

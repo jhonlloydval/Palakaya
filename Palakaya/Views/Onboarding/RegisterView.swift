@@ -103,6 +103,7 @@ struct RegisterView: View {
                 role: appState.regRole, businessName: appState.regBusiness)
             appState.registerError = nil
             appState.applyUser(user)
+            UserDefaults.standard.set(user.id.uuidString, forKey: AppState.rememberedUserKey)
             appState.showWelcomeTour = true
             appState.phase = .main
             let password = appState.regPassword

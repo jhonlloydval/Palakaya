@@ -32,6 +32,7 @@ struct HomeView: View {
 
     var body: some View {
         @Bindable var appState = appState
+        let _ = appState.pricesVersion
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 // Header

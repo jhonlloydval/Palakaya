@@ -6,6 +6,7 @@ struct LoginView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var isLoggingIn = false
     @State private var showForgot = false
+    @AppStorage("keepLoggedIn") private var keepLoggedIn = true
 
     var body: some View {
         @Bindable var appState = appState
@@ -30,6 +31,10 @@ struct LoginView: View {
                 }
 
                 HStack {
+                    Toggle(isOn: $keepLoggedIn) {
+                        Text("Keep me logged in").font(.system(size: 14, weight: .medium)).foregroundColor(.pkText)
+                    }
+                    .toggleStyle(CheckboxToggleStyle())
                     Spacer()
                     Button("Forgot Password?") { showForgot = true }
                         .font(.system(size: 13, weight: .medium)).foregroundColor(.pkDark)
@@ -68,6 +73,7 @@ struct LoginView: View {
                     .login(mobile: appState.loginMobile, password: appState.loginPassword)
                 appState.loginError = nil
                 appState.applyUser(user)
+                if keepLoggedIn { UserDefaults.standard.set(user.id.uuidString, forKey: AppState.rememberedUserKey) }
                 appState.phase = .main
                 let password = appState.loginPassword
                 appState.loginPassword = ""

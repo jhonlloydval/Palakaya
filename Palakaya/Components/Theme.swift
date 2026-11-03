@@ -284,3 +284,21 @@ struct CardContainer<Content: View>: View {
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
+
+/// A tappable checkbox with its label, at least 44 points tall.
+struct CheckboxToggleStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button { configuration.isOn.toggle() } label: {
+            HStack(spacing: 8) {
+                Image(systemName: configuration.isOn ? "checkmark.square.fill" : "square")
+                    .font(.system(size: 20))
+                    .foregroundColor(configuration.isOn ? .pkDark : .pkSub)
+                configuration.label
+            }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(configuration.isOn ? [.isButton, .isSelected] : .isButton)
+    }
+}

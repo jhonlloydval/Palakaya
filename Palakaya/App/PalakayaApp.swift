@@ -22,8 +22,28 @@ struct PalakayaApp: App {
         WindowGroup {
             RootView()
                 .environment(appState)
+                .onAppear(perform: restoreSession)
                 .modelContainer(container)
                 .preferredColorScheme(appearance == "light" ? .light : appearance == "dark" ? .dark : nil)
+        }
+    }
+
+    /// Opens the remembered account straight away, then refreshes its cloud data in the background.
+    private func restoreSession() {
+        guard appState.phase == .onboarding,
+              let raw = UserDefaults.standard.string(forKey: AppState.rememberedUserKey),
+              let id = UUID(uuidString: raw) else { return }
+        let context = container.mainContext
+        guard let user = try? context.fetch(FetchDescriptor<UserAccount>(predicate: #Predicate { $0.id == id })).first else {
+            UserDefaults.standard.removeObject(forKey: AppState.rememberedUserKey)
+            return
+        }
+        appState.applyUser(user)
+        appState.phase = .main
+        Task {
+            await SyncController.sync(appState: appState, context: context)
+            await FairPriceService.refresh()
+            appState.pricesVersion += 1
         }
     }
 
