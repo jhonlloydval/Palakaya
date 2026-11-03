@@ -13,7 +13,18 @@ struct BuyerOffersView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("My Offers").font(.system(size: 26, weight: .bold)).padding(.top, 16).padding(.bottom, 16)
+                HStack {
+                    Text("My Offers").font(.system(size: 26, weight: .bold))
+                    Spacer()
+                    Button { appState.showNotifs = true } label: {
+                        ZStack {
+                            Circle().fill(Color.pkSurface2).frame(width: 44, height: 44)
+                            Image(systemName: "bell.fill").foregroundColor(.pkDark).font(.system(size: 16))
+                        }
+                    }
+                    .accessibilityLabel("Notifications")
+                }
+                .padding(.top, 16).padding(.bottom, 16)
 
                 if !OfferController.isAvailable {
                     InfoBox(text: "Offers need an internet connection. Pull down to try again.")
