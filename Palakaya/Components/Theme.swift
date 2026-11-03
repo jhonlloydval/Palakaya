@@ -278,6 +278,7 @@ struct CardContainer<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) { content() }
             .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.pkSurface)
             .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.pkBorder))
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))

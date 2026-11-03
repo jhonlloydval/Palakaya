@@ -27,7 +27,7 @@ struct WelcomeTourView: View {
         }
         return [
             TourTip(icon: "water.waves", title: "Log every catch",
-                    detail: "Tap the round blue Catch button, pick the fish, enter the kilos. It takes under a minute."),
+                    detail: "Tap Log Catch on Home, pick the fish, enter the kilos. It takes under a minute. Your list is in the blue Catch tab."),
             TourTip(icon: "tag.fill", title: "Check the fair price",
                     detail: "Each catch shows this week's fair price range, so you know your floor before you sell."),
             TourTip(icon: "storefront.fill", title: "Sell in Market",
