@@ -85,6 +85,28 @@ final class SupabaseClient {
         }
     }
 
+    /// Updates the rows matching `filter` (PostgREST syntax, e.g. "id=eq.<uuid>").
+    func update<T: Encodable>(_ table: String, filter: String, values: T) async throws {
+        let headers = ["Prefer": "return=minimal"]
+        do {
+            _ = try await request("rest/v1/\(table)?\(filter)", method: "PATCH", body: values, headers: headers)
+        } catch CloudError.server(401, _) {
+            try await refresh()
+            _ = try await request("rest/v1/\(table)?\(filter)", method: "PATCH", body: values, headers: headers)
+        }
+    }
+
+    /// Inserts one row without merging into existing ones.
+    func insert<T: Encodable>(_ table: String, row: T) async throws {
+        let headers = ["Prefer": "return=minimal"]
+        do {
+            _ = try await request("rest/v1/\(table)", method: "POST", body: row, headers: headers)
+        } catch CloudError.server(401, _) {
+            try await refresh()
+            _ = try await request("rest/v1/\(table)", method: "POST", body: row, headers: headers)
+        }
+    }
+
     /// Calls a Supabase Edge Function as the signed-in user and returns its JSON body.
     func invoke<B: Encodable>(function name: String, body: B) async throws -> Data {
         do {
