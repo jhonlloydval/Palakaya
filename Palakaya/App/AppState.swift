@@ -7,7 +7,7 @@ enum AppPhase {
 }
 
 enum AppTab: String {
-    case home, catchTab, market, advisor, profile
+    case home, catchTab, market, advisor, profile, offers
 }
 
 enum Route: Hashable {

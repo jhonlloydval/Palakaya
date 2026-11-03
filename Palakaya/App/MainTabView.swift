@@ -20,6 +20,9 @@ struct MainTabView: View {
         .sheet(isPresented: $appState.showLogCatch) {
             LogCatchFlowView()
         }
+        .sheet(item: payingOffer) { offer in
+            PaymentFlowView(offer: offer)
+        }
         .sheet(isPresented: $appState.showNotifs) {
             NotificationsSheetView()
                 .presentationDetents([.fraction(0.7)])
@@ -36,7 +39,16 @@ struct MainTabView: View {
         case .market: MarketView()
         case .advisor: AdvisorView()
         case .profile: ProfileView()
+        case .offers: BuyerOffersView()
         }
+    }
+
+    /// The accepted offer the buyer chose to pay, if any.
+    private var payingOffer: Binding<Offer?> {
+        Binding(
+            get: { appState.myOffers.first { $0.id == appState.payingOfferID } },
+            set: { if $0 == nil { appState.payingOfferID = nil } }
+        )
     }
 
     @ViewBuilder
@@ -59,13 +71,23 @@ struct MainTabView: View {
 struct CustomTabBar: View {
     @Environment(AppState.self) private var appState
 
-    private let tabs: [(AppTab, String, String)] = [
-        (.home, "Home", "house.fill"),
-        (.catchTab, "Catch", "water.waves"),
-        (.market, "Market", "storefront.fill"),
-        (.advisor, "Advisor", "sparkles"),
-        (.profile, "Profile", "person.fill"),
-    ]
+    private var tabs: [(AppTab, String, String)] {
+        if appState.isBuyer {
+            return [
+                (.market, "Buy", "storefront.fill"),
+                (.offers, "My Offers", "tag.fill"),
+                (.advisor, "Advisor", "sparkles"),
+                (.profile, "Profile", "person.fill"),
+            ]
+        }
+        return [
+            (.home, "Home", "house.fill"),
+            (.catchTab, "Catch", "water.waves"),
+            (.market, "Market", "storefront.fill"),
+            (.advisor, "Advisor", "sparkles"),
+            (.profile, "Profile", "person.fill"),
+        ]
+    }
 
     var body: some View {
         HStack {
