@@ -64,7 +64,7 @@ struct LoginView: View {
             appState.loginError = "No account found for that mobile number."
             return
         }
-        guard user.password == password else {
+        guard user.verifyPassword(password) else {
             appState.loginError = "Incorrect password."
             return
         }

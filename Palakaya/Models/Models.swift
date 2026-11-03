@@ -10,7 +10,7 @@ final class UserAccount {
     @Attribute(.unique) var id: UUID
     var fullName: String
     var mobile: String
-    var password: String
+    @Attribute(originalName: "password") var passwordHash: String
     var municipality: String
     var province: String
     var landingSite: String
@@ -21,12 +21,16 @@ final class UserAccount {
         self.id = UUID()
         self.fullName = fullName
         self.mobile = mobile
-        self.password = password
+        self.passwordHash = PasswordHasher.hash(password, salt: mobile)
         self.municipality = municipality
         self.province = province
         self.landingSite = landingSite
         self.fisherfolkID = fisherfolkID
         self.createdAt = Date()
+    }
+
+    func verifyPassword(_ attempt: String) -> Bool {
+        passwordHash == PasswordHasher.hash(attempt, salt: mobile)
     }
 
     var initials: String {
