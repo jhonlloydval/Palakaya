@@ -12,6 +12,7 @@ struct PalakayaApp: App {
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
+        upgradeLegacyAccounts()
         seedIfNeeded()
     }
 
@@ -21,6 +22,23 @@ struct PalakayaApp: App {
                 .environment(appState)
                 .modelContainer(container)
         }
+    }
+
+    /// Accounts saved by older versions of the app kept the mobile number as typed ("0917 234 5678")
+    /// and the password as plain text, so login could not find or verify them. Normalizes and hashes them once.
+    private func upgradeLegacyAccounts() {
+        let context = ModelContext(container)
+        let accounts = (try? context.fetch(FetchDescriptor<UserAccount>())) ?? []
+        var changed = false
+        for user in accounts {
+            let isHashed = user.passwordHash.count == 64 && user.passwordHash.allSatisfy(\.isHexDigit)
+            guard !isHashed else { continue }
+            let mobile = InputParsing.normalizedMobile(user.mobile)
+            user.mobile = mobile
+            user.passwordHash = PasswordHasher.hash(user.passwordHash, salt: mobile)
+            changed = true
+        }
+        if changed { try? context.save() }
     }
 
     /// Seeds a demo account (matching the original prototype's login placeholder)
