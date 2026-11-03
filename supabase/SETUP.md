@@ -2,7 +2,12 @@
 
 The app works fully offline without this. These steps turn on cloud sync.
 
-1. Create a free project at https://supabase.com (region: Southeast Asia / Singapore).
+1. Sign in at https://supabase.com.
+   - **New organization**: name it after yourself (e.g. "JLV Projects"), not after this app.
+     One organization holds many projects. Plan: **Free**.
+   - **New project** inside it: name `palakaya`, click **Generate a password** (save it; the app does not need it),
+     region **Southeast Asia (Singapore)**. Wait 1–2 minutes for it to finish setting up.
+   - The free plan allows 2 active projects in total; unused ones auto-pause and can be resumed.
 2. **SQL Editor → New query**: paste `supabase/schema.sql` and click **Run**.
 3. **Authentication → Sign In / Providers → Email**: turn **off** "Confirm email".
    The app signs in with your mobile number mapped to a placeholder address, which cannot receive mail.
