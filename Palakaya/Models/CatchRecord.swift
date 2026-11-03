@@ -22,6 +22,8 @@ final class CatchRecord {
     var alignment: Int?
     var buyersInterested: Int?
     var hasPhoto: Bool
+    /// JPEG of the catch, kept on the phone (stored outside the database file).
+    @Attribute(.externalStorage) var photoData: Data?
     /// True until this record has been uploaded to the cloud.
     var needsSync: Bool = true
 

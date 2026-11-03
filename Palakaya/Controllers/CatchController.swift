@@ -6,9 +6,10 @@ struct CatchController {
     let context: ModelContext
 
     @discardableResult
-    func saveCatch(ownerID: UUID?, species: String, weight: Double, ground: String, date: Date, hasPhoto: Bool) throws -> CatchRecord {
+    func saveCatch(ownerID: UUID?, species: String, weight: Double, ground: String, date: Date, photo: Data?) throws -> CatchRecord {
         let record = CatchRecord(species: species, weight: weight, ground: ground,
-                                 timeLabel: date.pkTimeLabel, dateLogged: date, hasPhoto: hasPhoto)
+                                 timeLabel: date.pkTimeLabel, dateLogged: date, hasPhoto: photo != nil)
+        record.photoData = photo
         record.ownerID = ownerID
         context.insert(record)
         try context.save()

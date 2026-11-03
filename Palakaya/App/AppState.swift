@@ -82,7 +82,7 @@ final class AppState {
     var lcSpecies: String?
     var lcWeight: String = ""
     var lcGround: String = ""
-    var lcPhoto = false
+    var lcPhoto: Data?
     var lcDate = Date()
 
     // Active records / flows
@@ -109,7 +109,7 @@ final class AppState {
         lcSpecies = nil
         lcWeight = ""
         lcGround = currentUserLandingSite
-        lcPhoto = false
+        lcPhoto = nil
         lcDate = Date()
     }
 
