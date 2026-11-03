@@ -7,6 +7,12 @@ enum Advisor {
     static func reply(to question: String, catches: [CatchRecord]) -> String {
         let q = question.lowercased()
 
+        let illegal = ["dynamite", "dinamita", "pampasabog", "blast fishing", "cyanide", "sianuro", "lason", "poison",
+                       "fine mesh", "fine-mesh", "protected area", "sanctuary", "pawikan", "turtle", "dolphin", "shark fin"]
+        if illegal.contains(where: q.contains) {
+            return "I can't help with that. Blast, poison and fine-mesh fishing and catching protected species are illegal and destroy the fishing grounds you depend on. Your Municipal Agriculture Office or BFAR can tell you which gear and areas are allowed."
+        }
+
         // Try to detect a species mentioned in the question.
         if let species = FAIR_DB.keys.first(where: { q.contains($0.lowercased()) }) {
             let f = FAIR_DB[species]!
@@ -30,7 +36,7 @@ enum Advisor {
             }
         }
 
-        if q.contains("mababa") || q.contains("below") || q.contains("bakit") {
+        if q.contains("mababa") || q.contains("below") || q.contains("bakit") || q.contains("last sale") || q.contains("fair") {
             if let lastSale = catches.first(where: { $0.status == .sold }), let fair = lastSale.fair, let price = lastSale.price {
                 if price < Double(fair.low) {
                     return "Your last sale of \(lastSale.species) was at ₱\(Int(price))/kg, which is below today's benchmark range of ₱\(fair.low)–₱\(fair.high)/kg. Try comparing offers from more buyers before accepting next time — the Buyer Matches screen shows nearby offers side by side."
@@ -40,7 +46,7 @@ enum Advisor {
             return "I don't see a recorded sale yet to compare. Once you record a sale, I can tell you how it lined up with the local benchmark."
         }
 
-        return "Kamusta! Ask me about a specific species (e.g. \"Magkano ang Galunggong?\"), your fishing grounds, or a recent sale, and I'll check it against your catch records and today's market prices."
+        return "I can only help with fishing, your catch and fish prices. Try asking \"How much is Galunggong today?\", \"Which fishing ground gave me the most?\" or \"Was my last sale fair?\""
     }
 }
 
