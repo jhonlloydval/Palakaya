@@ -56,6 +56,15 @@ enum SyncService {
         return rows?.first?.verified ?? false
     }
 
+    private static let deletesKey = "pendingCatchDeletes"
+
+    /// Catches deleted on this phone that the cloud still has. They are deleted there on the next sync
+    /// and are never downloaded again in the meantime.
+    static var pendingDeletes: Set<UUID> {
+        get { Set((UserDefaults.standard.stringArray(forKey: deletesKey) ?? []).compactMap(UUID.init)) }
+        set { UserDefaults.standard.set(newValue.map(\.uuidString), forKey: deletesKey) }
+    }
+
     /// Downloads this account's catches so a reinstall or new phone gets them back.
     /// Local edits that have not uploaded yet win over the cloud copy.
     @discardableResult
@@ -67,7 +76,8 @@ enum SyncService {
         let byID = Dictionary(local.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
 
         var added = 0
-        for row in rows {
+        let deleted = pendingDeletes
+        for row in rows where !deleted.contains(row.id) {
             let record: CatchRecord
             if let existing = byID[row.id] {
                 guard !existing.needsSync else { continue }
@@ -106,6 +116,10 @@ enum SyncService {
         try await SupabaseClient.shared.upsert("catches", rows: rows)
         pending.forEach { $0.needsSync = false }
         try context.save()
+        for id in pendingDeletes {
+            try await SupabaseClient.shared.delete("catches", id: id)
+            pendingDeletes.remove(id)
+        }
         return pending.count
     }
 }

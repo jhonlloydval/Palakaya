@@ -117,6 +117,17 @@ final class SupabaseClient {
         }
     }
 
+    /// Deletes one row by id (Row Level Security still applies).
+    func delete(_ table: String, id: UUID) async throws {
+        let path = "rest/v1/\(table)?id=eq.\(id.uuidString.lowercased())"
+        do {
+            _ = try await request(path, method: "DELETE", body: [String: String]())
+        } catch CloudError.server(401, _) {
+            try await refresh()
+            _ = try await request(path, method: "DELETE", body: [String: String]())
+        }
+    }
+
     /// Calls a Supabase Edge Function as the signed-in user and returns its JSON body.
     func invoke<B: Encodable>(function name: String, body: B) async throws -> Data {
         do {

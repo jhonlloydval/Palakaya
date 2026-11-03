@@ -5,6 +5,7 @@ struct CatchDetailsView: View {
     var catchID: UUID
     @Environment(AppState.self) private var appState
     @Query private var catches: [CatchRecord]
+    @State private var showEdit = false
 
     private var record: CatchRecord? { catches.first { $0.id == catchID } }
 
@@ -83,13 +84,16 @@ struct CatchDetailsView: View {
                             appState.listingQty = "\(c.weight.pkTrimmed) kg"
                             appState.path.append(Route.createListing(c.id))
                         }
-                        GhostButton(title: "Edit Record") {}.padding(.top, 12)
+                        GhostButton(title: "Edit Record", systemImage: "pencil") { showEdit = true }.padding(.top, 12)
                     }
                 }
                 .padding(.horizontal, 20).padding(.bottom, 28)
             }
         }
         .background(Color.pkBg)
+        .sheet(isPresented: $showEdit) {
+            if let c = record { EditCatchView(record: c) }
+        }
         .navigationTitle("Catch Details")
         .navigationBarTitleDisplayMode(.inline)
     }

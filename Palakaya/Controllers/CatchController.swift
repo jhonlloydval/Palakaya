@@ -16,6 +16,26 @@ struct CatchController {
         return record
     }
 
+    /// Saves edits to a catch that has not been sold. The time label follows the new date.
+    func updateCatch(_ record: CatchRecord, species: String, weight: Double, ground: String, date: Date, photo: Data?) throws {
+        record.species = species
+        record.weight = weight
+        record.ground = ground
+        record.dateLogged = date
+        record.timeLabel = date.pkTimeLabel
+        record.photoData = photo
+        record.hasPhoto = photo != nil
+        record.needsSync = true
+        try context.save()
+    }
+
+    /// Removes a catch from this phone and queues its removal from the cloud.
+    @MainActor func deleteCatch(_ record: CatchRecord) throws {
+        SyncService.pendingDeletes.insert(record.id)
+        context.delete(record)
+        try context.save()
+    }
+
     func publishListing(_ record: CatchRecord, pricePerKg: Double) throws {
         record.status = .listed
         record.price = pricePerKg
