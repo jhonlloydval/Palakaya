@@ -7,6 +7,7 @@ struct MarketView: View {
     private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     private var mine: [CatchRecord] { catches.filter { $0.status == .listed } }
+    @State private var sort: MarketSort = .newest
 
     var body: some View {
         @Bindable var appState = appState
@@ -17,7 +18,7 @@ struct MarketView: View {
 
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundColor(.pkSub)
-                    TextField("Search fish or seller", text: $appState.marketSearch)
+                    TextField("Search fish, seller or place", text: $appState.marketSearch)
                         .font(.system(size: 16))
                         .autocorrectionDisabled()
                 }
@@ -45,8 +46,21 @@ struct MarketView: View {
 
                 }
 
-                SectionHeading(title: appState.marketIsSample ? "Sample Listings"
-                               : (appState.isBuyer ? "Fresh Catch From Fishers" : "Available From Other Fishers"))
+                HStack(alignment: .center) {
+                    SectionHeading(title: appState.marketIsSample ? "Sample Listings"
+                                   : (appState.isBuyer ? "Fresh Catch From Fishers" : "From Other Fishers"))
+                    Menu {
+                        Picker("Sort", selection: $sort) {
+                            ForEach(MarketSort.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                        }
+                    } label: {
+                        Label(sort.rawValue, systemImage: "arrow.up.arrow.down")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.pkDark)
+                            .frame(minHeight: 44)
+                    }
+                    .accessibilityLabel("Sort listings, now \(sort.rawValue)")
+                }
                 if appState.marketIsSample {
                     InfoBox(text: "These are sample listings. Sign in with cloud sync on to see real catches for sale.")
                         .padding(.bottom, 12)
@@ -78,11 +92,24 @@ struct MarketView: View {
 
     private var others: [OtherListing] {
         let q = appState.marketSearch.trimmingCharacters(in: .whitespaces)
-        guard !q.isEmpty else { return appState.marketListings }
-        return appState.marketListings.filter {
+        let found = q.isEmpty ? appState.marketListings : appState.marketListings.filter {
             $0.species.localizedCaseInsensitiveContains(q) || $0.seller.localizedCaseInsensitiveContains(q)
+                || $0.site.localizedCaseInsensitiveContains(q)
+        }
+        switch sort {
+        case .newest: return found
+        case .lowestPrice: return found.sorted { $0.price < $1.price }
+        case .fairFirst: return found.filter(\.fair) + found.filter { !$0.fair }
+        case .mostKilos: return found.sorted { $0.weight > $1.weight }
         }
     }
+}
+
+enum MarketSort: String, CaseIterable {
+    case newest = "Newest"
+    case lowestPrice = "Lowest price"
+    case fairFirst = "Fair price first"
+    case mostKilos = "Most kilos"
 }
 
 struct MarketCardView: View {
