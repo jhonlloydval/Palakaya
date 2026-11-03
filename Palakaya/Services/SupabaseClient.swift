@@ -21,6 +21,7 @@ final class SupabaseClient {
     private let session = URLSession.shared
     private(set) var accessToken: String? = KeychainStore.get("access_token")
     private var refreshToken: String? = KeychainStore.get("refresh_token")
+    private(set) var userID: String? = KeychainStore.get("user_id")
 
     var isSignedIn: Bool { accessToken != nil }
 
@@ -43,6 +44,8 @@ final class SupabaseClient {
     func signOut() {
         accessToken = nil
         refreshToken = nil
+        userID = nil
+        KeychainStore.set(nil, for: "user_id")
         KeychainStore.set(nil, for: "access_token")
         KeychainStore.set(nil, for: "refresh_token")
     }
@@ -54,13 +57,18 @@ final class SupabaseClient {
     }
 
     private func storeSession(from data: Data) throws {
-        struct Session: Decodable { let access_token: String?; let refresh_token: String? }
+        struct User: Decodable { let id: String }
+        struct Session: Decodable { let access_token: String?; let refresh_token: String?; let user: User? }
         let s = try JSONDecoder().decode(Session.self, from: data)
         guard let access = s.access_token else { throw CloudError.notSignedIn }
         accessToken = access
         refreshToken = s.refresh_token
         KeychainStore.set(access, for: "access_token")
         KeychainStore.set(s.refresh_token, for: "refresh_token")
+        if let id = s.user?.id {
+            userID = id
+            KeychainStore.set(id, for: "user_id")
+        }
     }
 
     // MARK: Data

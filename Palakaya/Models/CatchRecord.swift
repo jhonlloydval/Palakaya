@@ -20,6 +20,8 @@ final class CatchRecord {
     var alignment: Int?
     var buyersInterested: Int?
     var hasPhoto: Bool
+    /// True until this record has been uploaded to the cloud.
+    var needsSync: Bool = true
 
     init(species: String, weight: Double, ground: String, timeLabel: String, dateLogged: Date = Date(),
          status: CatchStatus = .available, price: Double? = nil, saleAmount: Double? = nil,

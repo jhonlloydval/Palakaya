@@ -18,6 +18,7 @@ struct CatchController {
         record.status = .listed
         record.price = pricePerKg
         record.buyersInterested = BUYERS.count
+        record.needsSync = true
         try context.save()
     }
 
@@ -31,6 +32,7 @@ struct CatchController {
         record.saleAmount = Double(amount)
         record.buyerName = buyer.name
         record.alignment = alignment
+        record.needsSync = true
         try context.save()
         return SaleResult(amount: amount, alignment: alignment, buyerName: buyer.name, species: record.species)
     }
