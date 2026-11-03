@@ -30,11 +30,11 @@ struct ProfileView: View {
                         Text(appState.userInitials).font(.system(size: 24, weight: .bold)).foregroundColor(.white)
                     }
                     HStack(spacing: 4) {
-                        Text(appState.currentUserName.isEmpty ? "Mang Jose Dela Cruz" : appState.currentUserName)
+                        Text(appState.currentUserName.isEmpty ? "Fisher" : appState.currentUserName)
                             .font(.system(size: 18, weight: .bold))
                         Image(systemName: "checkmark.seal.fill").font(.system(size: 14)).foregroundColor(.pkDark)
                     }
-                    Text("Verified Municipal Fisher").font(.system(size: 13)).foregroundColor(.pkSub)
+                    Text(appState.currentUserFID.isEmpty ? "Municipal Fisher" : "Registered Municipal Fisher").font(.system(size: 13)).foregroundColor(.pkSub)
                     HStack(spacing: 4) {
                         Image(systemName: "mappin.circle.fill").font(.system(size: 11)).foregroundColor(.pkSub)
                         Text(appState.currentUserLandingSite.isEmpty ? "Sabang Landing Site, Batangas" : "\(appState.currentUserLandingSite), \(appState.currentUserProvince)")
@@ -48,8 +48,6 @@ struct ProfileView: View {
                     StatBox(label: "Caught", value: "\(Int(totalKg))kg")
                     Divider().overlay(Color.pkBorder)
                     StatBox(label: "Sales", value: "\(sales)")
-                    Divider().overlay(Color.pkBorder)
-                    StatBox(label: "Rating", value: "4.9★")
                 }
                 .padding(16)
                 .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.pkBorder))

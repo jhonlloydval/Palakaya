@@ -33,7 +33,7 @@ struct CatchDetailsView: View {
 
                     if let fair = c.fair {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Fair Price").font(.system(size: 14, weight: .semibold)).foregroundColor(.pkDark)
+                            Text("Estimated Fair Price").font(.system(size: 14, weight: .semibold)).foregroundColor(.pkDark)
                             HStack { Text("Regional benchmark").font(.system(size: 13)).foregroundColor(.pkSub); Spacer(); Text("₱\(fair.low)–₱\(fair.high)/kg").font(.system(size: 13.5, weight: .semibold)) }
                             HStack { Text("Current midpoint").font(.system(size: 13)).foregroundColor(.pkSub); Spacer(); Text("₱\(fair.mid)/kg").font(.system(size: 13.5, weight: .semibold)) }
                             Divider().overlay(Color.pkBorder)

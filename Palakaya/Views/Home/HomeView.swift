@@ -206,7 +206,7 @@ struct CatchCardView: View {
                 }
                 Divider().overlay(Color.pkBorder).padding(.vertical, 12)
                 HStack {
-                    Text("Fair Price").font(.system(size: 13)).foregroundColor(.pkSub)
+                    Text("Estimated Fair Price").font(.system(size: 13)).foregroundColor(.pkSub)
                     Spacer()
                     if let fair = record.fair {
                         Text("₱\(fair.low)–₱\(fair.high)/kg").font(.system(size: 14, weight: .semibold)).foregroundColor(.pkDark)

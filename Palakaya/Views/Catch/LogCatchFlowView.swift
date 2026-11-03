@@ -146,7 +146,7 @@ struct LogCatchFlowView: View {
 
                 if let fair {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Fair Price").font(.system(size: 13)).foregroundColor(.pkSub)
+                        Text("Estimated Fair Price").font(.system(size: 13)).foregroundColor(.pkSub)
                         Text("₱\(fair.low)–₱\(fair.high)/kg").font(.system(size: 18, weight: .bold)).foregroundColor(.pkDark).padding(.bottom, 8)
                         Text("Potential Value").font(.system(size: 13)).foregroundColor(.pkSub)
                         Text("₱\(Int(weight * Double(fair.low)).formatted())–₱\(Int(weight * Double(fair.high)).formatted())")

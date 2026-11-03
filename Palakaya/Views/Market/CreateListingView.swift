@@ -33,7 +33,7 @@ struct CreateListingView: View {
                     .pkField("Selected Catch")
 
                     if let fair {
-                        Text("Fair price range today: ₱\(fair.low)–₱\(fair.high)/kg")
+                        Text("Estimated fair price (regional average): ₱\(fair.low)–₱\(fair.high)/kg")
                             .font(.system(size: 13)).foregroundColor(.pkSub).padding(.bottom, 16)
                     }
 
