@@ -11,6 +11,7 @@ enum SyncController {
             try await SyncService.connect(user: user, password: password)
             await sync(appState: appState, context: context)
             try await SyncService.pull(ownerID: user.id, context: context)
+            await FairPriceService.refresh()
         } catch {
             appState.isOffline = isConnectivityError(error)
         }

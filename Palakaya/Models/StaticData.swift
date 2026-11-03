@@ -6,9 +6,12 @@ struct FairPriceInfo {
     var mid: Int
     var week: Double
     var history: [Int]
+    /// Number of real sales behind this range; nil means it is a built-in estimate.
+    var saleCount: Int? = nil
 }
 
-let FAIR_DB: [String: FairPriceInfo] = [
+/// Built-in estimates used until enough real sales exist in the cloud.
+let ESTIMATED_FAIR_PRICES: [String: FairPriceInfo] = [
     "Galunggong": FairPriceInfo(low: 180, high: 205, mid: 192, week: 6.2, history: [176, 182, 188, 185, 192, 190, 192]),
     "Tamban":     FairPriceInfo(low: 150, high: 170, mid: 160, week: -1.1, history: [163, 162, 160, 161, 159, 158, 160]),
     "Tulingan":   FairPriceInfo(low: 198, high: 215, mid: 210, week: 2.8, history: [203, 205, 206, 208, 209, 211, 210]),
@@ -18,7 +21,12 @@ let FAIR_DB: [String: FairPriceInfo] = [
 ]
 
 let RECENT_SPECIES = ["Galunggong", "Tamban", "Tulingan", "Bisugo"]
-let ALL_SPECIES = Array(FAIR_DB.keys).sorted()
+/// Live prices from real sales where available, otherwise the built-in estimate.
+var FAIR_DB: [String: FairPriceInfo] {
+    ESTIMATED_FAIR_PRICES.merging(FairPriceService.live) { _, live in live }
+}
+
+let ALL_SPECIES = Array(ESTIMATED_FAIR_PRICES.keys).sorted()
 
 struct OtherListing: Identifiable {
     var id: String
