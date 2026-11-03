@@ -3,7 +3,8 @@ import SwiftData
 
 struct MyCatchView: View {
     @Environment(AppState.self) private var appState
-    @Query(sort: \CatchRecord.dateLogged, order: .reverse) private var catches: [CatchRecord]
+    @Query(sort: \CatchRecord.dateLogged, order: .reverse) private var allCatches: [CatchRecord]
+    private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     private var filtered: [CatchRecord] {
         switch appState.historyFilter {

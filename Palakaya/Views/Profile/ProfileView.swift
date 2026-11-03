@@ -3,7 +3,8 @@ import SwiftData
 
 struct ProfileView: View {
     @Environment(AppState.self) private var appState
-    @Query private var catches: [CatchRecord]
+    @Query private var allCatches: [CatchRecord]
+    private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     private var totalKg: Double { catches.reduce(0) { $0 + $1.weight } }
     private var sales: Int { catches.filter { $0.status == .sold }.count }

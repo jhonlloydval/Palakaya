@@ -4,7 +4,8 @@ import SwiftData
 struct HomeView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \CatchRecord.dateLogged, order: .reverse) private var catches: [CatchRecord]
+    @Query(sort: \CatchRecord.dateLogged, order: .reverse) private var allCatches: [CatchRecord]
+    private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     private var todayWeight: Double { catches.reduce(0) { $0 + $1.weight } }
     private var todayValue: Double { catches.reduce(0) { $0 + $1.weight * Double(FAIR_DB[$1.species]?.mid ?? 0) } }

@@ -51,6 +51,7 @@ struct PalakayaApp: App {
         for s in seedCatches {
             let c = CatchRecord(species: s.0, weight: s.1, ground: s.2, timeLabel: s.3, status: s.4,
                                  price: s.5, saleAmount: s.6, buyerName: s.7, alignment: s.8, buyersInterested: s.9)
+            c.ownerID = demoUser.id
             context.insert(c)
         }
 

@@ -3,7 +3,8 @@ import SwiftData
 
 struct MarketView: View {
     @Environment(AppState.self) private var appState
-    @Query private var catches: [CatchRecord]
+    @Query private var allCatches: [CatchRecord]
+    private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     private var mine: [CatchRecord] { catches.filter { $0.status == .listed } }
 

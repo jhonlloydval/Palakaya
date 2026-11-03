@@ -188,7 +188,7 @@ struct LogCatchFlowView: View {
         let record: CatchRecord
         do {
             record = try CatchController(context: modelContext)
-                .saveCatch(species: species, weight: weight, ground: appState.lcGround,
+                .saveCatch(ownerID: appState.currentUserID, species: species, weight: weight, ground: appState.lcGround,
                            date: appState.lcDate, hasPhoto: appState.lcPhoto)
         } catch {
             appState.errorMessage = "Your catch could not be saved. Please try again."

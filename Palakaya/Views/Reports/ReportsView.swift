@@ -2,7 +2,9 @@ import SwiftUI
 import SwiftData
 
 struct ReportsView: View {
-    @Query private var catches: [CatchRecord]
+    @Environment(AppState.self) private var appState
+    @Query private var allCatches: [CatchRecord]
+    private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     private var summary: ReportSummary { ReportsController.summary(for: catches) }
 

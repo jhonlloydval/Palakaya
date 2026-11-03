@@ -8,6 +8,8 @@ enum CatchStatus: String, Codable {
 @Model
 final class CatchRecord {
     @Attribute(.unique) var id: UUID
+    /// The UserAccount that logged this catch.
+    var ownerID: UUID?
     var species: String
     var weight: Double
     var ground: String
@@ -49,4 +51,12 @@ final class CatchRecord {
     var loggedLabel: String { "\(dateLogged.pkDayLabel) · \(timeLabel)" }
 
     var fair: FairPriceInfo? { FAIR_DB[species] }
+}
+
+extension Array where Element == CatchRecord {
+    /// Only the catches that belong to the signed-in fisher.
+    func owned(by userID: UUID?) -> [CatchRecord] {
+        guard let userID else { return [] }
+        return filter { $0.ownerID == userID }
+    }
 }

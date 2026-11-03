@@ -5,7 +5,8 @@ struct AdvisorView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \AdvisorMessageRecord.timestamp) private var messages: [AdvisorMessageRecord]
-    @Query private var catches: [CatchRecord]
+    @Query private var allCatches: [CatchRecord]
+    private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     var body: some View {
         VStack(spacing: 0) {
