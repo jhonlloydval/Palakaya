@@ -18,7 +18,7 @@ struct AdvisorView: View {
                     Image(systemName: "sparkles").foregroundColor(.pkDark)
                     Text("Palakaya Advisor").font(.system(size: 20, weight: .bold))
                 }
-                Text("Answers about your catch, prices and selling. Fishing topics only.").font(.system(size: 13)).foregroundColor(.pkSub)
+                Text("Ask about your catch, fish prices and selling. You can type in English or Filipino.").font(.system(size: 13)).foregroundColor(.pkSub)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
