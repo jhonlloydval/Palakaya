@@ -39,6 +39,16 @@ enum SyncService {
             role: user.role, business_name: user.businessName)])
     }
 
+    /// Uploads profile edits made in Profile. Does nothing when signed out; the next login uploads them.
+    static func pushProfile(_ user: UserAccount) async throws {
+        let client = SupabaseClient.shared
+        guard AppConfig.isCloudEnabled, let id = client.userID else { return }
+        try await client.upsert("profiles", rows: [ProfileRow(
+            id: id, full_name: user.fullName, mobile: user.mobile, municipality: user.municipality,
+            province: user.province, landing_site: user.landingSite, fisherfolk_id: user.fisherfolkID,
+            role: user.role, business_name: user.businessName)])
+    }
+
     /// Whether the admin has verified this account (buyers get a Verified badge).
     static func isVerified() async -> Bool {
         struct Row: Decodable { let verified: Bool }

@@ -89,6 +89,30 @@ struct AuthController {
         return user
     }
 
+    /// Saves edits from Profile. The mobile number stays fixed because it is the login.
+    func updateProfile(_ user: UserAccount, name: String, municipality: String, province: String,
+                       landingSite: String, fisherfolkID: String) throws {
+        let trimmedName = name.trimmingCharacters(in: .whitespaces)
+        guard !trimmedName.isEmpty else { throw AuthError.missingFields }
+        user.fullName = trimmedName
+        user.municipality = municipality.trimmingCharacters(in: .whitespaces)
+        user.province = province.trimmingCharacters(in: .whitespaces)
+        user.landingSite = landingSite.trimmingCharacters(in: .whitespaces)
+        user.fisherfolkID = fisherfolkID.trimmingCharacters(in: .whitespaces)
+        do { try context.save() } catch { throw AuthError.storageFailed }
+    }
+
+    /// Changes the password on this phone and, when signed in, in the cloud account too.
+    func changePassword(_ user: UserAccount, current: String, new: String) async throws {
+        guard user.verifyPassword(current) else { throw AuthError.wrongPassword }
+        guard InputParsing.isStrongPassword(new) else { throw AuthError.weakPassword }
+        if AppConfig.isCloudEnabled, SupabaseClient.shared.isSignedIn {
+            try await SupabaseClient.shared.updatePassword(new)
+        }
+        user.passwordHash = PasswordHasher.hash(new, salt: user.mobile)
+        do { try context.save() } catch { throw AuthError.storageFailed }
+    }
+
     private func welcome(for user: UserAccount) -> String {
         let firstName = user.fullName.split(separator: " ").first.map(String.init) ?? "there"
         return "Hi \(firstName)! Ask me about your catch, fish prices or selling. You can write in English or Filipino."

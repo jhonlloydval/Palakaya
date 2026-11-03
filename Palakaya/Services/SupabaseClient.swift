@@ -41,6 +41,16 @@ final class SupabaseClient {
         try await storeSession(from: request("auth/v1/token?grant_type=password", method: "POST", body: body, authorized: false))
     }
 
+    /// Changes the cloud password of the signed-in account.
+    func updatePassword(_ password: String) async throws {
+        do {
+            _ = try await request("auth/v1/user", method: "PUT", body: ["password": password])
+        } catch CloudError.server(401, _) {
+            try await refresh()
+            _ = try await request("auth/v1/user", method: "PUT", body: ["password": password])
+        }
+    }
+
     func signOut() {
         accessToken = nil
         refreshToken = nil
