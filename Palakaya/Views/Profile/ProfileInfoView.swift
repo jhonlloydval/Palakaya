@@ -427,25 +427,101 @@ private struct HelpSection: View {
 // MARK: - About
 
 private struct AboutSection: View {
+    private let stats: [(String, String)] = [
+        ("600,000 t", "less fish landed in 2023 than in 2010"),
+        ("350,000+", "fishing families below the poverty line"),
+        ("₱2,500–7,000", "a month is what many municipal fishers earn"),
+        ("49–52", "years old, the average Filipino fisher"),
+    ]
+
+    private let features: [(String, String, String)] = [
+        ("water.waves", "Log every catch", "Species, kilos, fishing ground, time and a photo, saved even with no signal."),
+        ("tag.fill", "Fair-price check", "A price range for each fish from real recent sales in your province."),
+        ("storefront.fill", "Direct to buyers", "List your catch and get offers from verified stalls, carinderias and cooperatives."),
+        ("checkmark.seal.fill", "Fair-sale score", "Every sale is scored against the fair price, so you know if you were paid right."),
+        ("sparkles", "Advisor", "Ask about prices, grounds and selling in English or Filipino."),
+        ("chart.bar.doc.horizontal.fill", "Reports", "Monthly kilos, income and best grounds, ready to share."),
+        ("building.columns.fill", "Data for BFAR and LGUs", "Anonymous totals by town and species, never names."),
+    ]
+
     var body: some View {
-        VStack(spacing: 8) {
-            Image("PalakayaLogo").resizable().scaledToFit().frame(width: 150)
-                .accessibilityLabel("Palakaya")
-            Text("Version 2.0").font(.system(size: 14)).foregroundColor(.pkSub)
+        VStack(spacing: 10) {
+            Image("PalakayaLogo").resizable().scaledToFit().frame(width: 170)
+                .accessibilityLabel("Palakaya. Catch. Connect. Get a Fair Price.")
+            Text("A catch log and fair-price marketplace for Filipino municipal fishers.")
+                .font(.system(size: 16, weight: .medium)).foregroundColor(.pkSub).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
 
-        Panel(title: "Why Palakaya") {
-            Text("Small-scale fishers often sell at whatever price the first buyer names. Palakaya helps them log every catch, see a fair price before selling, and reach more buyers, so more of the catch's value stays with the fisher.")
-                .font(.system(size: 15)).foregroundColor(.pkText).lineSpacing(3)
+        VStack(alignment: .leading, spacing: 12) {
+            Text("The catch is theirs. The price usually isn't.")
+                .font(.system(size: 22, weight: .heavy)).foregroundColor(.white)
+            Text("Under the consignacion system, the trader who sells the fish sets its price, not the fisher who caught it. Fishers go home without knowing if they were paid fairly, and fisheries offices can't see where prices fall short.")
+                .font(.system(size: 15)).foregroundColor(.white.opacity(0.88)).lineSpacing(3)
         }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(LinearGradient.pkBrand)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+
+        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 12) {
+            ForEach(stats, id: \.0) { value, label in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(value).font(.system(size: 20, weight: .heavy)).foregroundColor(.pkDark)
+                        .minimumScaleFactor(0.8).lineLimit(1)
+                    Text(label).font(.system(size: 13)).foregroundColor(.pkSub)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(14)
+                .frame(maxWidth: .infinity, minHeight: 104, alignment: .topLeading)
+                .background(Color.pkSurface)
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.pkBorder))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .accessibilityElement(children: .combine)
+            }
+        }
+        Text("Sources: Philstar, IndexBox and The New Humanitarian, 2026.").font(.system(size: 12)).foregroundColor(.pkSub)
+
+        Panel(title: "What Palakaya does") {
+            ForEach(features, id: \.1) { icon, title, detail in
+                HStack(alignment: .top, spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.pkSurface2).frame(width: 44, height: 44)
+                        Image(systemName: icon).font(.system(size: 18)).foregroundColor(.pkDark)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(title).font(.system(size: 16, weight: .bold)).foregroundColor(.pkText)
+                        Text(detail).font(.system(size: 14)).foregroundColor(.pkSub).lineSpacing(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .accessibilityElement(children: .combine)
+            }
+        }
+
+        Panel(title: "Who it's for") {
+            Fact(icon: "figure.fishing", text: "Municipal fishers, as defined in the Fisheries Code (RA 8550), including those who sell through consignacion today.")
+            Fact(icon: "cart.fill", text: "Buyers: market vendors, carinderias, wholesalers and fisherfolk cooperatives.")
+            Fact(icon: "building.columns.fill", text: "BFAR and local fisheries offices, who get a live, anonymous view of catch and prices.")
+        }
+
         Panel(title: "How fair prices work") {
-            Fact(icon: "chart.bar.fill", text: "For each fish, Palakaya looks at sales recorded in the app over the last 30 days and shows the middle range of those prices.")
-            Fact(icon: "number", text: "A fish needs at least 5 recent sales before real prices are used. Until then the app shows a regional estimate and says so.")
+            Fact(icon: "chart.bar.fill", text: "For each fish, Palakaya takes sales recorded in the last 30 days and shows the middle half of those prices.")
+            Fact(icon: "mappin.and.ellipse", text: "Your own province is used first. With fewer than 5 sales there, it uses all Palakaya sales, then a regional estimate, and always says which.")
         }
+
         Panel(title: "Built with") {
-            Fact(icon: "swift", text: "SwiftUI and SwiftData on iPhone, with Supabase for cloud backup and the Advisor.")
+            Fact(icon: "swift", text: "SwiftUI and SwiftData on iPhone, works offline.")
+            Fact(icon: "server.rack", text: "Supabase for cloud backup, the marketplace and the Advisor.")
         }
+
+        VStack(spacing: 4) {
+            Text("Made by Jhon Lloyd Valencia").font(.system(size: 15, weight: .semibold)).foregroundColor(.pkText)
+            Text("Lucena City, Quezon").font(.system(size: 13)).foregroundColor(.pkSub)
+            Text("Version 2.0").font(.system(size: 13)).foregroundColor(.pkSub)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 8)
     }
 }
