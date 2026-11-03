@@ -4,6 +4,7 @@ import SwiftData
 struct LoginView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
+    @State private var isLoggingIn = false
 
     var body: some View {
         @Bindable var appState = appState
@@ -34,7 +35,7 @@ struct LoginView: View {
                 }
                 .padding(.bottom, 22)
 
-                GradientButton(title: "Log In") { doLogin() }
+                GradientButton(title: isLoggingIn ? "Logging in…" : "Log In") { doLogin() }
 
                 HStack(spacing: 5) {
                     Text("Don't have an account?").foregroundColor(.pkSub)
@@ -52,17 +53,22 @@ struct LoginView: View {
     }
 
     private func doLogin() {
-        do {
-            let user = try AuthController(context: modelContext)
-                .login(mobile: appState.loginMobile, password: appState.loginPassword)
-            appState.loginError = nil
-            appState.applyUser(user)
-            appState.phase = .main
-            let password = appState.loginPassword
-            appState.loginPassword = ""
-            Task { await SyncController.connectAndSync(user: user, password: password, appState: appState, context: modelContext) }
-        } catch {
-            appState.loginError = error.localizedDescription
+        guard !isLoggingIn else { return }
+        isLoggingIn = true
+        Task {
+            defer { isLoggingIn = false }
+            do {
+                let user = try await AuthController(context: modelContext)
+                    .login(mobile: appState.loginMobile, password: appState.loginPassword)
+                appState.loginError = nil
+                appState.applyUser(user)
+                appState.phase = .main
+                let password = appState.loginPassword
+                appState.loginPassword = ""
+                await SyncController.connectAndSync(user: user, password: password, appState: appState, context: modelContext)
+            } catch {
+                appState.loginError = error.localizedDescription
+            }
         }
     }
 }
