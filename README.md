@@ -1,12 +1,12 @@
 <div align="center">
 
-<img src="assets/palakaya-icon.png" alt="Palakaya" width="120"/>
+<img src="assets/palakaya-mark.png" alt="Palakaya" width="140"/>
 
 # Palakaya
 
-**A Catch-Logging and Fair-Price Marketplace for Municipal Filipino Fisherfolk**
+**Palakaya: A Catch-Logging and Fair-Price Marketplace for Municipal Filipino Fisherfolk**
 
-*Catch. Connect. Get a Fair Price.*
+### *Catch. Connect. Get a Fair Price.*
 
 [![Swift](https://img.shields.io/badge/Swift-5.10-F05138?style=flat-square&logo=swift&logoColor=white)](https://swift.org)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-iOS%2017%2B-0D96F6?style=flat-square&logo=apple&logoColor=white)](https://developer.apple.com/xcode/swiftui/)
@@ -527,6 +527,9 @@ Without any setup the app runs **fully offline**: your data stays on the phone a
 
 ## References
 
+<details>
+<summary>Click to expand</summary>
+
 - Beato, O. H. (2026, April 6). *Iran war pushes Philippines fishing communities to the brink.* The New Humanitarian.
 - Cooperative Development Authority. (2021, August 9). *Fisherfolk marketing cooperatives: Empowered partners of BFAR towards fish sufficiency and food security.*
 - Food and Agriculture Organization & WorldFish. (2020). *Information and communication technologies for small-scale fisheries (ICT4SSF): A handbook for fisheries stakeholders.* FAO.
@@ -540,6 +543,8 @@ Without any setup the app runs **fully offline**: your data stays on the phone a
 - Reuters. (2026, July 10). *A decade after historic ruling, Philippine fishermen say driven away from disputed shoal by China.* U.S. News & World Report.
 - Stanford Center for Ocean Solutions. (2021). *Digital platforms empowering small-scale fishers.* Stanford University.
 - Universitas Multi Data Palembang Student Conference. (2026). *FishLink: Bridging consumers direct to fishermen's catch* [Conference paper].
+
+</details>
 
 ---
 
