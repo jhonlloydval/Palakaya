@@ -164,8 +164,8 @@ private struct OnboardingPage: View {
     }
 
     /// Where the people are in each photo, as fractions of its width and height.
-    private static let focusX: [CGFloat] = [0.5, 0.5, 0.4, 0.5, 0.45]
-    private static let focus: [CGFloat] = [0.74, 0.5, 0.45, 0.5, 0.5]
+    private static let focusX: [CGFloat] = [0.5, 0.57, 0.4, 0.5, 0.45]
+    private static let focus: [CGFloat] = [0.74, 0.4, 0.45, 0.5, 0.5]
 
     /// Draws the photo larger than the space it shows and slides it so the fishers sit at about a third of the way down the
     /// screen, above the highlight and the text.
