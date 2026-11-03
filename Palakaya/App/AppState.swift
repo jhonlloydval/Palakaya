@@ -73,6 +73,8 @@ final class AppState {
     var isOffline = false
     var showNotifs = false
     var showWelcomeTour = false
+    /// Why the last upload failed, shown on the Connectivity page. Nil when the last sync worked.
+    var lastSyncError: String?
     var errorMessage: String?
     var historyFilter = "All"
 

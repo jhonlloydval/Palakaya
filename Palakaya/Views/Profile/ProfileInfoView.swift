@@ -352,6 +352,11 @@ private struct ConnectivitySection: View {
             ValueRow(label: "Catches on this phone", value: "\(mine.count)")
             Divider().overlay(Color.pkBorder)
             ValueRow(label: "Waiting to upload", value: pending == 0 ? "None" : "\(pending)")
+            if let problem = appState.lastSyncError, pending > 0 {
+                Text("Last upload failed: \(problem)")
+                    .font(.system(size: 13)).foregroundColor(.pkDanger)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             PrimaryButton(title: syncing ? "Syncing…" : "Sync now", systemImage: "arrow.triangle.2.circlepath",
                           isDisabled: syncing || !cloudOn) {
                 syncing = true

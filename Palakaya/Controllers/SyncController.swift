@@ -26,8 +26,10 @@ enum SyncController {
         do {
             try await SyncService.pushPending(context: context)
             appState.isOffline = false
+            appState.lastSyncError = nil
         } catch {
             appState.isOffline = isConnectivityError(error)
+            appState.lastSyncError = error.localizedDescription
         }
     }
 
