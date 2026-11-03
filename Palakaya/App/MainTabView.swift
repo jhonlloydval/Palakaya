@@ -31,7 +31,8 @@ struct MainTabView: View {
         }
         .sheet(isPresented: $appState.showNotifs) {
             NotificationsSheetView()
-                .presentationDetents([.fraction(0.7)])
+                .presentationDetents([.fraction(0.7), .large])
+                .presentationBackground(Color.pkBg)
                 .presentationDragIndicator(.visible)
         }
         .tint(.pkDark)

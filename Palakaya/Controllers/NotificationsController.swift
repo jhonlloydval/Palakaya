@@ -85,6 +85,7 @@ enum NotificationsController {
     private static func relative(_ date: Date, _ now: Date) -> String {
         let f = RelativeDateTimeFormatter()
         f.unitsStyle = .short
-        return f.localizedString(for: date, relativeTo: now)
+        // Never show a future time ("in 1 hr.") for something already logged.
+        return date >= now.addingTimeInterval(-60) ? "Just now" : f.localizedString(for: date, relativeTo: now)
     }
 }
