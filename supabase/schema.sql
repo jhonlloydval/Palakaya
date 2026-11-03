@@ -30,6 +30,12 @@ create table if not exists public.catches (
 
 create index if not exists catches_owner_idx on public.catches (owner_id);
 
+-- Only signed-in users may reach these tables through the Data API; RLS below limits them to their own rows.
+-- (Needed when "Automatically expose new tables" is off.)
+revoke all on public.profiles, public.catches from anon;
+grant select, insert, update on public.profiles to authenticated;
+grant select, insert, update, delete on public.catches to authenticated;
+
 alter table public.profiles enable row level security;
 alter table public.catches enable row level security;
 
