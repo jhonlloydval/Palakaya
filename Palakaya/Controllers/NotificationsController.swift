@@ -3,8 +3,39 @@ import Foundation
 /// Builds the notification list from the fisher's own records and the market, instead of fixed sample text.
 enum NotificationsController {
     static func items(catches: [CatchRecord], market: [OtherListing], marketIsSample: Bool,
-                      now: Date = Date()) -> [NotificationItem] {
+                      offers: [Offer] = [], now: Date = Date()) -> [NotificationItem] {
         var items: [(date: Date, item: NotificationItem)] = []
+
+        for o in offers {
+            let peso = "₱\(o.pricePerKg.pkTrimmed)/kg"
+            let date = o.paidAt ?? o.createdAt
+            let text: String?
+            let kind: String
+            switch (o.iAmBuyer, o.status) {
+            case (false, .pending):
+                kind = "NEW OFFER"
+                text = "\(o.buyerName) offered \(peso) for \(o.quantityKg.pkTrimmed) kg of your \(o.species)."
+            case (false, .paid):
+                kind = "PAYMENT RECEIVED"
+                text = "\(o.buyerName) paid ₱\(o.total.formatted()) via \(o.paymentMethod ?? "the app") for your \(o.species). Ref \(o.paymentRef ?? "—")."
+            case (true, .accepted):
+                kind = "OFFER ACCEPTED"
+                text = "\(o.fisherFirstName) accepted your offer for \(o.species). Pay ₱\(o.total.formatted()) in My Offers."
+            case (true, .declined):
+                kind = "OFFER DECLINED"
+                text = "\(o.fisherFirstName) declined your \(peso) offer for \(o.species)."
+            case (true, .paid):
+                kind = "PAYMENT SENT"
+                text = "You paid ₱\(o.total.formatted()) via \(o.paymentMethod ?? "the app") for \(o.species)."
+            default:
+                kind = ""
+                text = nil
+            }
+            if let text {
+                items.append((date, NotificationItem(id: "offer-\(o.id)-\(o.status.rawValue)", kind: kind,
+                                                     text: text, time: relative(date, now))))
+            }
+        }
 
         let pending = catches.filter(\.needsSync).count
         if AppConfig.isCloudEnabled && pending > 0 {

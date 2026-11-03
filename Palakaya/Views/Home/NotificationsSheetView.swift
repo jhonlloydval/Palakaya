@@ -8,7 +8,8 @@ struct NotificationsSheetView: View {
 
     private var items: [NotificationItem] {
         NotificationsController.items(catches: allCatches.owned(by: appState.currentUserID),
-                                      market: appState.marketListings, marketIsSample: appState.marketIsSample)
+                                      market: appState.marketListings, marketIsSample: appState.marketIsSample,
+                                      offers: appState.myOffers)
     }
 
     var body: some View {
@@ -44,5 +45,6 @@ struct NotificationsSheetView: View {
             }
         }
         .padding(20)
+        .task { await OfferController.refresh(appState: appState) }
     }
 }
