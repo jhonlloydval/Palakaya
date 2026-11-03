@@ -20,6 +20,13 @@ enum Advisor {
             return "Based on recent Palakaya transactions near you, \(species) is currently selling around ₱\(f.low)–₱\(f.high)/kg (average ₱\(f.mid)). Prices are \(trend) this week."
         }
 
+        if q.contains("fresh") || q.contains("ice") || q.contains("yelo") || q.contains("sariwa") {
+            return "Keep fish cold from the moment you buy it: pack it in crushed ice (about 1 kg of ice for every 1 kg of fish) in a covered cooler, keep it out of the sun, and sell or cook it within a day."
+        }
+        if q.contains("verified") || q.contains("verify") || q.contains("badge") {
+            return "Go to Profile → Buyer Verification. Send a photo of your business permit, cooperative registration or a government ID to your Municipal Agriculture Office or the Palakaya team. The badge then shows on your profile and offers."
+        }
+
         if q.contains("fishing ground") || q.contains("saan") || q.contains("ground") {
             let grounds = Dictionary(grouping: catches, by: { $0.ground })
                 .mapValues { $0.reduce(0.0) { $0 + $1.weight } }
@@ -28,6 +35,12 @@ enum Advisor {
                 return "Your best-performing fishing ground so far is \(best.key), with \(String(format: "%.1f", best.value)) kg logged. Keep tracking your catches here to refine this over time."
             }
             return "Log a few more catches with their fishing ground noted, and I can tell you which spot has been most productive for you."
+        }
+
+        if q.contains("value") || q.contains("cheap") || q.contains("mura") {
+            if let low = FAIR_DB.min(by: { $0.value.mid < $1.value.mid }) {
+                return "\(low.key) is the most affordable this week at around ₱\(low.value.mid)/kg (fair range ₱\(low.value.low)–₱\(low.value.high)). Offering within that range gets accepted most often."
+            }
         }
 
         if q.contains("mataas") || q.contains("highest") || q.contains("linggo") || q.contains("week") {
@@ -63,7 +76,7 @@ struct AdvisorController {
     }
     private struct PriceSummary: Encodable { let low: Int, high: Int, source: String }
     private struct Context: Encodable {
-        let municipality: String, province: String, landingSite: String, today: String
+        let role: String, municipality: String, province: String, landingSite: String, today: String
         let catches: [CatchSummary]
         let fairPrices: [String: PriceSummary]
     }
@@ -87,7 +100,7 @@ struct AdvisorController {
         guard AppConfig.isCloudEnabled, SupabaseClient.shared.isSignedIn else { return nil }
         let day = Date.FormatStyle().year().month().day()
         let ctx = Context(
-            municipality: appState.currentUserMunicipality, province: appState.currentUserProvince,
+            role: appState.isBuyer ? "buyer" : "fisher", municipality: appState.currentUserMunicipality, province: appState.currentUserProvince,
             landingSite: appState.currentUserLandingSite, today: Date().formatted(day),
             catches: catches.sorted { $0.dateLogged > $1.dateLogged }.prefix(40).map {
                 CatchSummary(species: $0.species, kg: $0.weight, ground: $0.ground, date: $0.dateLogged.formatted(day),

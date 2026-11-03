@@ -92,6 +92,13 @@ struct NotificationItem: Identifiable {
     var time: String
 }
 
+let BUYER_ADVISOR_SUGGESTIONS = [
+    "What is a fair price to offer for Tulingan today?",
+    "Which fish is the best value this week?",
+    "How do I keep fish fresh after I buy it?",
+    "How do I get the Verified badge?",
+]
+
 let ADVISOR_SUGGESTIONS = [
     "What is the fair price of Galunggong today?",
     "Which fishing ground gives me my best catch?",
