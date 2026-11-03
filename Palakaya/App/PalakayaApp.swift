@@ -42,15 +42,30 @@ struct PalakayaApp: App {
         )
         context.insert(demoUser)
 
-        let seedCatches: [(String, Double, String, String, CatchStatus, Double?, Double?, String?, Int?, Int?)] = [
-            ("Tamban", 8.0, "Sabang Fishing Ground", "7:10 AM", .sold, 160, 1280, "Aling Nena's Talipapa", 100, nil),
-            ("Bisugo", 6.4, "Batangas Bay", "6:20 AM", .available, nil, nil, nil, nil, nil),
-            ("Alumahan", 10.2, "Sabang Fishing Ground", "6:50 AM", .available, nil, nil, nil, nil, nil),
-            ("Tulingan", 18.0, "Batangas Bay", "6:05 AM", .listed, 205, nil, nil, nil, 3),
+        // Fixed IDs match `supabase/seed_demo.sql`, so the cloud copy (and buyers' offers on the
+        // Tulingan listing) line up with this phone after the first sync.
+        // (id suffix, species, kg, ground, days ago, hour, minute, status, ₱/kg, buyer)
+        let seedCatches: [(Int, String, Double, String, Int, Int, Int, CatchStatus, Double?, String?)] = [
+            (4, "Tulingan", 18.0, "Batangas Bay", 0, 6, 5, .listed, 205, nil),
+            (2, "Bisugo", 6.4, "Batangas Bay", 0, 6, 20, .available, nil, nil),
+            (3, "Alumahan", 10.2, "Sabang Fishing Ground", 0, 6, 50, .available, nil, nil),
+            (1, "Tamban", 8.0, "Sabang Fishing Ground", 1, 7, 10, .sold, 160, "Aling Nena's Talipapa"),
+            (5, "Galunggong", 12.0, "Sabang Fishing Ground", 3, 5, 40, .sold, 190, "Liza's Seafood Stall"),
+            (6, "Tulingan", 15.0, "Batangas Bay", 6, 6, 15, .sold, 208, "Coastal Fresh Trading Cooperative"),
+            (7, "Galunggong", 10.0, "Sabang Fishing Ground", 10, 5, 55, .sold, 185, "Ate Mila's Carinderia"),
+            (8, "Tamban", 9.0, "Sabang Fishing Ground", 14, 6, 30, .sold, 155, "Bay Fish Traders"),
+            (9, "Bisugo", 7.0, "Batangas Bay", 20, 6, 10, .sold, 200, "Liza's Seafood Stall"),
         ]
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
         for s in seedCatches {
-            let c = CatchRecord(species: s.0, weight: s.1, ground: s.2, timeLabel: s.3, status: s.4,
-                                 price: s.5, saleAmount: s.6, buyerName: s.7, alignment: s.8, buyersInterested: s.9)
+            let day = calendar.date(byAdding: .day, value: -s.4, to: today) ?? today
+            let date = calendar.date(bySettingHour: s.5, minute: s.6, second: 0, of: day) ?? day
+            let amount = s.7 == .sold ? s.8.map { $0 * s.2 } : nil
+            let alignment = s.7 == .sold ? s.8.flatMap { price in FAIR_DB[s.1].map { Int(price / Double($0.mid) * 100) } } : nil
+            let c = CatchRecord(species: s.1, weight: s.2, ground: s.3, timeLabel: date.pkTimeLabel, dateLogged: date,
+                                status: s.7, price: s.8, saleAmount: amount, buyerName: s.9, alignment: alignment)
+            c.id = UUID(uuidString: String(format: "a0000000-0000-4000-8000-%012d", s.0)) ?? UUID()
             c.ownerID = demoUser.id
             context.insert(c)
         }
