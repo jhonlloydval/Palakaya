@@ -23,17 +23,32 @@ struct RegisterView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
+                    Picker("I am a", selection: $appState.regRole) {
+                        Text("Fisher").tag("fisher")
+                        Text("Buyer").tag("buyer")
+                    }
+                    .pickerStyle(.segmented)
+                    .pkField("I am a")
+
+                    if appState.regRole == "buyer" {
+                        PKTextField(placeholder: "e.g. Liza's Seafood Stall", text: $appState.regBusiness)
+                            .pkField("Store, Stall or Cooperative Name")
+                    }
                     PKTextField(placeholder: "Juan Dela Cruz", text: $appState.regName).pkField("Full Name")
                     PKTextField(placeholder: "09XX XXX XXXX", text: $appState.regMobile, keyboard: .phonePad).pkField("Mobile Number")
                     PKTextField(placeholder: "Bauan", text: $appState.regMunicipality).pkField("Municipality")
                     PKTextField(placeholder: "Batangas, CALABARZON", text: $appState.regProvince).pkField("Province / Region")
-                    PKTextField(placeholder: "Sabang Landing Site", text: $appState.regLanding).pkField("Home Port / Landing Site")
-                    PKTextField(placeholder: "Optional", text: $appState.regFID).pkField("Fisherfolk ID (if applicable)")
+                    if appState.regRole == "fisher" {
+                        PKTextField(placeholder: "Sabang Landing Site", text: $appState.regLanding).pkField("Home Port / Landing Site")
+                        PKTextField(placeholder: "Optional", text: $appState.regFID).pkField("Fisherfolk ID (if applicable)")
+                    }
                     PKTextField(placeholder: "Create a password", text: $appState.regPassword, isSecure: true).pkField("Password")
 
                     HStack(alignment: .top, spacing: 10) {
                         Image(systemName: "lock.fill").foregroundColor(.pkDark)
-                        Text("Your personal catch records stay private. Government reports use anonymized regional data.")
+                        Text(appState.regRole == "buyer"
+                             ? "Buyers get a Verified badge after Palakaya checks their business permit or ID."
+                             : "Your personal catch records stay private. Government reports use anonymized regional data.")
                             .font(.system(size: 12.5)).foregroundColor(.pkText).lineSpacing(3)
                     }
                     .padding(14)
@@ -63,7 +78,8 @@ struct RegisterView: View {
             let user = try AuthController(context: modelContext).register(
                 name: appState.regName, mobile: appState.regMobile, municipality: appState.regMunicipality,
                 province: appState.regProvince, landingSite: appState.regLanding,
-                fisherfolkID: appState.regFID, password: appState.regPassword)
+                fisherfolkID: appState.regFID, password: appState.regPassword,
+                role: appState.regRole, businessName: appState.regBusiness)
             appState.registerError = nil
             appState.applyUser(user)
             appState.phase = .main
