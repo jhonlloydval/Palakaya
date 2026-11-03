@@ -87,6 +87,9 @@ final class AppState {
     var selectedBuyer: Buyer?
     var saleResult: SaleResult?
     var priceSel: String = "Galunggong"
+    var marketListings: [OtherListing] = []
+    var marketIsSample = true
+    var marketSearch = ""
 
     // Advisor
     var advisorSuggestionsUsed: Set<Int> = []

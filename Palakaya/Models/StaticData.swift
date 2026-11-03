@@ -26,14 +26,16 @@ struct OtherListing: Identifiable {
     var weight: Double
     var price: Int
     var seller: String
-    var rating: Double
+    var rating: Double?
     var site: String
-    var distance: String
+    var distance: String?
     var fair: Bool
     var fresh: Bool = false
+    var contactMobile: String? = nil
 }
 
-let OTHER_LISTINGS: [OtherListing] = [
+/// Shown only when cloud sync is not set up, and labelled as samples in the Market.
+let SAMPLE_LISTINGS: [OtherListing] = [
     OtherListing(id: "m1", species: "Tulingan", weight: 18, price: 205, seller: "Mang Roberto", rating: 4.8, site: "Batangas City", distance: "2.4 km", fair: true),
     OtherListing(id: "m2", species: "Bangus", weight: 15, price: 178, seller: "Aling Fely", rating: 4.6, site: "Anilao", distance: "3.1 km", fair: true, fresh: true),
     OtherListing(id: "m3", species: "Galunggong", weight: 9, price: 168, seller: "Kuya Dindo", rating: 4.9, site: "Mabini", distance: "4.7 km", fair: false),
