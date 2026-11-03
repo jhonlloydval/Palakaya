@@ -13,23 +13,30 @@ extension Color {
         self.init(red: r, green: g, blue: b)
     }
 
-    static let pkDark = Color(hex: "0261A7")
+    /// A color that follows the system appearance: `light` in Light Mode, `dark` in Dark Mode.
+    init(light: String, dark: String) {
+        let l = UIColor(Color(hex: light)), d = UIColor(Color(hex: dark))
+        self.init(UIColor { $0.userInterfaceStyle == .dark ? d : l })
+    }
+
+    // Dark Mode uses a night-sea navy rather than black, so the brand blues still read as the ocean.
+    static let pkDark = Color(light: "0261A7", dark: "3A93D6")
     static let pkAqua = Color(hex: "2ED5CC")
-    static let pkNavy = Color(hex: "01447E")
-    static let pkBg = Color(hex: "F5F8F8")
-    static let pkSurface = Color.white
-    static let pkSurface2 = Color(hex: "EDF7F6")
-    static let pkText = Color(hex: "10272D")
-    static let pkSub = Color(hex: "667A80")
-    static let pkBorder = Color(hex: "DDE9E8")
-    static let pkSuccess = Color(hex: "3E9C7D")
-    static let pkSuccessBg = Color(hex: "E7F5EF")
-    static let pkWarning = Color(hex: "C9852B")
-    static let pkWarningBg = Color(hex: "FCF2E1")
-    static let pkDanger = Color(hex: "C9483E")
-    static let pkDangerBg = Color(hex: "FBEAE8")
-    static let pkInfo = Color(hex: "1F6FA3")
-    static let pkInfoBg = Color(hex: "E7F1F7")
+    static let pkNavy = Color(light: "01447E", dark: "0B4F8A")
+    static let pkBg = Color(light: "F5F8F8", dark: "0A1A2B")
+    static let pkSurface = Color(light: "FFFFFF", dark: "112638")
+    static let pkSurface2 = Color(light: "EDF7F6", dark: "17324A")
+    static let pkText = Color(light: "10272D", dark: "E8F1F5")
+    static let pkSub = Color(light: "667A80", dark: "93A9B5")
+    static let pkBorder = Color(light: "DDE9E8", dark: "223B52")
+    static let pkSuccess = Color(light: "3E9C7D", dark: "4CC39A")
+    static let pkSuccessBg = Color(light: "E7F5EF", dark: "123528")
+    static let pkWarning = Color(light: "C9852B", dark: "E0A24A")
+    static let pkWarningBg = Color(light: "FCF2E1", dark: "3A2A12")
+    static let pkDanger = Color(light: "C9483E", dark: "EF6B60")
+    static let pkDangerBg = Color(light: "FBEAE8", dark: "3D1A18")
+    static let pkInfo = Color(light: "1F6FA3", dark: "5AA8DE")
+    static let pkInfoBg = Color(light: "E7F1F7", dark: "122C40")
 }
 
 extension LinearGradient {

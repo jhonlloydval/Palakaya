@@ -42,7 +42,7 @@ struct MyCatchView: View {
                                 .foregroundColor(appState.historyFilter == f ? .pkDark : .pkSub)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 8)
-                                .background(appState.historyFilter == f ? Color.white : Color.clear)
+                                .background(appState.historyFilter == f ? Color.pkSurface : Color.clear)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                     }
