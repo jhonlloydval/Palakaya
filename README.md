@@ -225,11 +225,12 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 - Consolidates a fisher's catch history, transaction log, and price-alignment trend into a savable, exportable personal report — monthly totals, average price alignment, and top species.
 - Exportable and shareable on demand; the same records roll up into the BFAR/LGU aggregate reporting layer.
 
-### 9. Buyer Verification *(planned)*
+### 9. Buyer Accounts, Offers & Verification
 
-- Verifies buyer registration details (vendor / retailer / cooperative status).
-- Surfaces buyer ratings and transaction history to fishers before a listing is agreed.
-- Flags buyer accounts associated with repeated below-benchmark offers.
+- Anyone can register as a **buyer** (stall, retailer, carinderia or cooperative), browse fresh listings, and send a price offer with a quantity and a message.
+- The fisher sees every offer side by side: buyer name, a **Verified** badge, number of paid purchases, and whether the offer is within the fair price. They accept one or decline.
+- **Verification is done by a person, not the app.** An admin turns on the badge in Supabase after checking a business permit, cooperative registration or ID. The app itself can never set it.
+- Once accepted, the buyer pays in the app through a **demo checkout** (GCash, Maya or LandBank) that mirrors the real steps (account number, one-time code, PIN, confirmation, receipt with a reference number) but moves no money. The fisher is notified when payment arrives.
 
 ### Low-Bandwidth / Offline Entry
 
@@ -249,13 +250,15 @@ What works in this build:
 | Fair-price benchmark | ✅ Working: from real cloud sales (≥ 5), otherwise a labelled estimate |
 | Create listing, with a warning when priced below the benchmark | ✅ Working |
 | Marketplace of other fishers' listings, with search and Call / Text | ✅ Working, from the cloud |
-| Buyer matches and record sale with price-alignment score | ✅ Working (buyer offers are sample buyers in this build) |
+| Buyer accounts: browse fresh catch, make offers, track them in My Offers | ✅ Working |
+| Buyer verification (Verified badge set by an admin after checking a permit or ID) | ✅ Working |
+| Buyer matches: fisher accepts or declines real offers, sale gets a price-alignment score | ✅ Working |
+| Checkout with GCash, Maya or LandBank | ✅ Working as a **demo payment** (no real money moves) |
 | AI Advisor | ✅ Working: Google Gemini (free) with offline fallback |
 | Notifications | ✅ Built from real sales, listings, sync status, and price updates |
 | Monthly report and share | ✅ Working, from real records |
 | Cloud sync (upload and download) with row-level security | ✅ Working |
 | Anonymized regional summary for BFAR / LGU (`regional_catch_summary`) | ✅ In the database; no dashboard yet |
-| Buyer accounts and buyer verification | 🔜 Next (buyer offers use sample buyers for now) |
 | SMS / USSD entry | Future work, outside this project |
 
 ---
@@ -286,7 +289,7 @@ The figure traces how a single fisher interaction becomes both a fisher-facing m
 
 **Palakaya deliberately does not:**
 - Itself buy, sell, or physically handle fish, negotiate, or mediate the exchange between fisher and buyer.
-- Process or hold payment — it surfaces buyer contact and matched listings; payment and delivery are arranged directly between fisher and buyer.
+- Process real money. The in-app checkout (GCash, Maya, LandBank) is a **demonstration** that follows the real steps (account, one-time code, PIN, receipt) without contacting any payment provider; delivery is arranged directly between fisher and buyer.
 - Extend to commercial fishing operators or aquaculture accounts.
 - Expose individual fisher identities or raw transaction data to BFAR or LGU users — government-facing outputs are anonymized and aggregated at the regional level only.
 
@@ -482,15 +485,33 @@ cd Palakaya
 open Palakaya.xcodeproj
 ```
 
-Pick an iPhone simulator and press **⌘R**. Log in with the demo account: mobile `09172345678`, password `password`.
+Pick an iPhone simulator and press **⌘R**. Log in with the demo fisher: mobile `09172345678`, password `password`.
 
 Without any setup the app runs **fully offline**: your data stays on the phone and the Advisor uses its built-in answers.
 
 ### Turn on the cloud and the AI Advisor (optional, free)
 
-1. Follow [`supabase/SETUP.md`](supabase/SETUP.md) to create the database, run `schema.sql`, and deploy the `advisor` function with your `GEMINI_API_KEY` secret.
+1. Follow [`supabase/SETUP.md`](supabase/SETUP.md) to create the database (run `schema.sql`, then `004_buyers_offers.sql`, then `seed_demo.sql` for demo data) and deploy the `advisor` function with your `GEMINI_API_KEY` secret.
 2. Copy `supabase/Secrets.example.plist` to `Palakaya/Config/Secrets.plist` and fill in your Supabase URL and publishable key.
    That file is git-ignored, so keys never reach GitHub.
+
+### Demo accounts
+
+After running `supabase/seed_demo.sql`, these accounts work on any phone (password for all: **`password`**):
+
+| Role | Name | Mobile | What to show |
+|---|---|---|---|
+| Fisher | Mang Jose Dela Cruz (Bauan) | `09172345678` | 3 offers waiting on his Tulingan listing: accept one, record the sale, see the alignment score |
+| Fisher | Roberto Mendoza (Batangas City) | `09171110001` | Gets paid when Liza pays for his Galunggong |
+| Fisher | Felicidad Reyes (Mabini) | `09171110002` | Alumahan listing with an offer |
+| Fisher | Dindo Garcia (Mabini) | `09171110003` | Tulingan listing with two offers |
+| Fisher | Rosario Aguilar (Lobo) | `09171110004` | Tamban listing with a below-fair offer |
+| Buyer ✓ | Liza's Seafood Stall | `09181230001` | An **accepted offer ready to pay**: run the GCash / Maya / LandBank demo checkout (one-time code `123456`) |
+| Buyer ✓ | Coastal Fresh Trading Cooperative | `09181230002` | Paid with LandBank; offers on listings |
+| Buyer | Bay Fish Traders (not verified) | `09181230003` | Shows how an unverified buyer looks to fishers |
+| Buyer ✓ | Ate Mila's Carinderia | `09181230004` | Paid with Maya; offers on listings |
+
+The month of demo sales gives every main species (Galunggong, Tamban, Tulingan, Bisugo, Alumahan) a live fair price from at least 5 real sales.
 
 ---
 
@@ -509,6 +530,8 @@ Without any setup the app runs **fully offline**: your data stays on the phone a
 | Fair-price benchmarking from real sales | ✅ Complete |
 | Marketplace listing & buyer matching | ✅ Complete |
 | Transaction recording & price-alignment scoring | ✅ Complete |
+| Buyer accounts, offers and admin-verified buyers | ✅ Complete |
+| Demo checkout (GCash, Maya, LandBank) with receipts | ✅ Complete |
 | Catch & Market Advisor (real AI with Google Gemini, offline fallback) | ✅ Complete |
 | Catch & income report generation and sharing | ✅ Complete |
 | Native SwiftUI iOS app (MVC) with offline storage | ✅ Complete |
@@ -518,7 +541,7 @@ Without any setup the app runs **fully offline**: your data stays on the phone a
 
 | Idea | Why it is outside this build |
 |---|---|
-| In-app payment & escrow | Handling money needs a licensed payment provider; fishers and buyers pay each other directly for now |
+| Real payments & escrow | Moving real money needs a licensed payment provider; the app ships a demo checkout instead |
 | SMS/USSD access for phones without data | Needs a telecom short-code partner |
 | BFAR / LGU dashboard on `regional_catch_summary` | The anonymized data is already collected; only the government-facing screen is left |
 
