@@ -13,7 +13,8 @@ The app works fully offline without this. These steps turn on cloud sync.
    2. `supabase/004_buyers_offers.sql` (buyer accounts, verification, offers, demo payments)
    3. `supabase/seed_demo.sql` (optional: demo accounts and a month of realistic data; see the README)
 
-   Already ran `schema.sql` before `002`/`003` existed? Also run `002_market.sql` and `003_fair_prices.sql`.
+   Already ran `schema.sql` before `002`/`003`/`005` existed? Also run `002_market.sql`, `003_fair_prices.sql`
+   and `005_regional_fair_prices.sql` (fair prices per province for the location picker on Fair Prices).
    Copy a file to the clipboard from Terminal with, for example:
    `pbcopy < ~/GitHub/Palakaya/supabase/004_buyers_offers.sql`
 3. **Authentication → Sign In / Providers → Email**: turn **off** "Confirm email".

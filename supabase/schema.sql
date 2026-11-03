@@ -115,3 +115,26 @@ having count(*) >= 5;
 
 revoke all on public.fair_prices from anon;
 grant select on public.fair_prices to authenticated;
+
+-- Fair prices per province (same as migration 005_regional_fair_prices.sql).
+create or replace view public.regional_fair_prices
+with (security_invoker = false) as
+select
+    p.province,
+    c.species,
+    count(*) as sale_count,
+    round(percentile_cont(0.25) within group (order by c.price_per_kg)::numeric) as low,
+    round(percentile_cont(0.50) within group (order by c.price_per_kg)::numeric) as mid,
+    round(percentile_cont(0.75) within group (order by c.price_per_kg)::numeric) as high,
+    max(c.caught_at) as last_sale_at
+from public.catches c
+join public.profiles p on p.id = c.owner_id
+where c.status = 'sold'
+  and c.price_per_kg is not null
+  and c.caught_at >= now() - interval '30 days'
+  and p.province <> ''
+group by p.province, c.species
+having count(*) >= 5;
+
+revoke all on public.regional_fair_prices from anon;
+grant select on public.regional_fair_prices to authenticated;
