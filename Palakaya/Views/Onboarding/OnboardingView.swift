@@ -274,7 +274,7 @@ private struct SeaWaves: View {
     }
 }
 
-private struct Wave: Shape {
+struct Wave: Shape {
     var phase: Double
     var amplitude: CGFloat
     /// Where the wave's resting line sits, as a fraction of the height from the top.
