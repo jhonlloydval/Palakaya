@@ -9,6 +9,25 @@ struct HomeView: View {
 
     private var todaysCatches: [CatchRecord] { catches.filter { Calendar.current.isDateInToday($0.dateLogged) } }
     private var todayWeight: Double { todaysCatches.reduce(0) { $0 + $1.weight } }
+    /// Today's kilos compared with the average of earlier fishing days, as a whole percent.
+    private var changeVsAverage: Int? {
+        let calendar = Calendar.current
+        let earlier = catches.filter { !calendar.isDateInToday($0.dateLogged) }
+        let days = Dictionary(grouping: earlier) { calendar.startOfDay(for: $0.dateLogged) }
+        guard !days.isEmpty else { return nil }
+        let average = earlier.reduce(0) { $0 + $1.weight } / Double(days.count)
+        guard average > 0 else { return nil }
+        return Int(((todayWeight - average) / average * 100).rounded())
+    }
+
+    private var greeting: String {
+        switch Calendar.current.component(.hour, from: Date()) {
+        case 5..<12: return "Good morning"
+        case 12..<18: return "Good afternoon"
+        default: return "Good evening"
+        }
+    }
+
     private var todayValue: Double { todaysCatches.reduce(0) { $0 + $1.weight * Double(FAIR_DB[$1.species]?.mid ?? 0) } }
 
     var body: some View {
@@ -18,7 +37,7 @@ struct HomeView: View {
                 // Header
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Magandang umaga, \(appState.currentUserName.split(separator: " ").first.map(String.init) ?? "Mang Jose") 👋")
+                        Text("\(greeting), \(appState.currentUserName.split(separator: " ").first.map(String.init) ?? "")")
                             .font(.system(size: 19, weight: .bold))
                         HStack(spacing: 4) {
                             Image(systemName: "mappin.circle.fill").font(.system(size: 12)).foregroundColor(.pkSub)
@@ -68,17 +87,20 @@ struct HomeView: View {
                     HStack(alignment: .bottom) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Estimated value").font(.system(size: 12)).foregroundColor(.white.opacity(0.7))
-                            Text("₱\(Int(todayValue).formatted())").font(.system(size: 20, weight: .bold)).foregroundColor(.white)
+                            Text(todayValue == 0 && todayWeight > 0 ? "No price yet" : "₱\(Int(todayValue).formatted())")
+                                .font(.system(size: 20, weight: .bold)).foregroundColor(.white)
                         }
                         Spacer()
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.up.right").font(.system(size: 11, weight: .bold))
-                            Text("+12% vs. average").font(.system(size: 12, weight: .semibold))
+                        if let change = changeVsAverage, todayWeight > 0 {
+                            HStack(spacing: 4) {
+                                Image(systemName: change >= 0 ? "arrow.up.right" : "arrow.down.right").font(.system(size: 11, weight: .bold))
+                                Text("\(change >= 0 ? "+" : "")\(change)% vs. your average").font(.system(size: 12, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 11).padding(.vertical, 6)
+                            .background(Color.white.opacity(0.2))
+                            .clipShape(Capsule())
                         }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 11).padding(.vertical, 6)
-                        .background(Color.white.opacity(0.2))
-                        .clipShape(Capsule())
                     }
                     .padding(.bottom, 16)
 
@@ -96,13 +118,16 @@ struct HomeView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .padding(.bottom, 16)
 
+                SeaTodayCard(municipality: appState.currentUserMunicipality, province: appState.currentUserProvince)
+                    .padding(.bottom, 16)
+
                 // Fair price card
                 if let fair = FAIR_DB["Galunggong"] {
                     CardContainer {
                         HStack {
                             Text("Fair Price Today").font(.system(size: 14, weight: .semibold))
                             Spacer()
-                            Badge(tone: .success, text: "↑ \(String(format: "%.0f", fair.week))% this week", systemImage: "arrow.up.right")
+                            Badge(tone: fair.week >= 0 ? .success : .danger, text: "\(String(format: "%.0f", abs(fair.week)))% \(fair.week >= 0 ? "up" : "down") this week", systemImage: fair.week >= 0 ? "arrow.up.right" : "arrow.down.right")
                         }
                         Text("Galunggong").font(.system(size: 13)).foregroundColor(.pkSub).padding(.top, 2)
                         Text("₱\(fair.low) – ₱\(fair.high) / kg").font(.system(size: 22, weight: .bold)).foregroundColor(.pkDark).padding(.vertical, 4)
