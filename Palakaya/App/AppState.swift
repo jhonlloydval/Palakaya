@@ -47,8 +47,8 @@ final class AppState {
     var currentUserMobile: String = ""
 
     // Login form
-    var loginMobile: String = "0917 234 5678"
-    var loginPassword: String = "password"
+    var loginMobile: String = ""
+    var loginPassword: String = ""
     var loginError: String?
 
     // Register form
