@@ -10,7 +10,7 @@ enum SyncService {
         let full_name, mobile, municipality, province, landing_site, fisherfolk_id: String
     }
 
-    private struct CatchRow: Encodable {
+    private struct CatchRow: Codable {
         let id: UUID
         let species: String
         let weight_kg: Double
@@ -36,6 +36,41 @@ enum SyncService {
         try await client.upsert("profiles", rows: [ProfileRow(
             id: id, full_name: user.fullName, mobile: user.mobile, municipality: user.municipality,
             province: user.province, landing_site: user.landingSite, fisherfolk_id: user.fisherfolkID)])
+    }
+
+    /// Downloads this account's catches so a reinstall or new phone gets them back.
+    /// Local edits that have not uploaded yet win over the cloud copy.
+    @discardableResult
+    static func pull(ownerID: UUID, context: ModelContext) async throws -> Int {
+        guard AppConfig.isCloudEnabled else { throw CloudError.notConfigured }
+        let rows: [CatchRow] = try await SupabaseClient.shared.select("catches",
+            query: "select=id,species,weight_kg,fishing_ground,caught_at,status,price_per_kg,sale_amount,buyer_name,alignment_pct")
+        let local = try context.fetch(FetchDescriptor<CatchRecord>())
+        let byID = Dictionary(local.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+
+        var added = 0
+        for row in rows {
+            let record: CatchRecord
+            if let existing = byID[row.id] {
+                guard !existing.needsSync else { continue }
+                record = existing
+            } else {
+                record = CatchRecord(species: row.species, weight: row.weight_kg, ground: row.fishing_ground,
+                                     timeLabel: row.caught_at.pkTimeLabel, dateLogged: row.caught_at)
+                record.id = row.id
+                context.insert(record)
+                added += 1
+            }
+            record.ownerID = ownerID
+            record.statusRaw = row.status
+            record.price = row.price_per_kg
+            record.saleAmount = row.sale_amount
+            record.buyerName = row.buyer_name
+            record.alignment = row.alignment_pct
+            record.needsSync = false
+        }
+        try context.save()
+        return added
     }
 
     /// Uploads every record marked `needsSync`. Returns how many were uploaded.

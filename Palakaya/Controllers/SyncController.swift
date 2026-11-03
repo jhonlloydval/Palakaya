@@ -10,6 +10,7 @@ enum SyncController {
         do {
             try await SyncService.connect(user: user, password: password)
             await sync(appState: appState, context: context)
+            try await SyncService.pull(ownerID: user.id, context: context)
         } catch {
             appState.isOffline = isConnectivityError(error)
         }

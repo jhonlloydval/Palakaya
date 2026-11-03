@@ -85,7 +85,43 @@ final class SupabaseClient {
         }
     }
 
+    /// Reads rows the signed-in user is allowed to see (Row Level Security applies).
+    func select<T: Decodable>(_ table: String, query: String = "select=*") async throws -> [T] {
+        let data: Data
+        do {
+            data = try await get("rest/v1/\(table)?\(query)")
+        } catch CloudError.server(401, _) {
+            try await refresh()
+            data = try await get("rest/v1/\(table)?\(query)")
+        }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let raw = try decoder.singleValueContainer().decode(String.self)
+            let withFraction = ISO8601DateFormatter()
+            withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = withFraction.date(from: raw) ?? ISO8601DateFormatter().date(from: raw) { return date }
+            throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Bad date \(raw)"))
+        }
+        return try decoder.decode([T].self, from: data)
+    }
+
     // MARK: Transport
+
+    private func get(_ path: String) async throws -> Data {
+        guard let base = AppConfig.supabaseURL, let key = AppConfig.supabaseAnonKey,
+              let url = URL(string: path, relativeTo: base) else { throw CloudError.notConfigured }
+        guard let accessToken else { throw CloudError.notSignedIn }
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 20
+        req.setValue(key, forHTTPHeaderField: "apikey")
+        req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await session.data(for: req)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(status) else {
+            throw CloudError.server(status, String(data: data, encoding: .utf8) ?? "")
+        }
+        return data
+    }
 
     private func request<B: Encodable>(_ path: String, method: String, body: B,
                                        headers: [String: String] = [:], authorized: Bool = true) async throws -> Data {
