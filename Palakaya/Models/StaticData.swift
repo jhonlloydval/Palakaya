@@ -60,6 +60,20 @@ struct Buyer: Identifiable, Hashable {
     var distance: String
     var fair: Bool
     var type: String
+    /// Set when this buyer comes from a real offer in the cloud.
+    var offerID: UUID? = nil
+    var quantity: Double? = nil
+    var message: String = ""
+}
+
+extension Buyer {
+    init(offer: Offer, fair: FairPriceInfo?) {
+        self.init(id: offer.id.uuidString, name: offer.buyerName, verified: offer.buyerVerified, rating: 0,
+                  trans: offer.buyerPaidCount, offer: Int(offer.pricePerKg.rounded()),
+                  distance: offer.buyerMunicipality ?? "", fair: fair.map { offer.pricePerKg >= Double($0.low) } ?? true,
+                  type: offer.buyerVerified ? "Verified buyer" : "Buyer", offerID: offer.id,
+                  quantity: offer.quantityKg, message: offer.message)
+    }
 }
 
 let BUYERS: [Buyer] = [
