@@ -46,6 +46,9 @@ final class AppState {
     var currentUserLandingSite: String = ""
     var currentUserFID: String = ""
     var currentUserMobile: String = ""
+    var currentUserRole: String = "fisher"
+    var currentBusinessName: String = ""
+    var isBuyer: Bool { currentUserRole == "buyer" }
 
     // Login form
     var loginMobile: String = ""
@@ -60,6 +63,8 @@ final class AppState {
     var regLanding = ""
     var regFID = ""
     var regPassword = ""
+    var regRole = "fisher"
+    var regBusiness = ""
     var registerError: String?
 
     // Misc UI
@@ -90,6 +95,8 @@ final class AppState {
     var marketListings: [OtherListing] = []
     var marketIsSample = true
     var marketSearch = ""
+    var myOffers: [Offer] = []
+    var payingOfferID: UUID?
 
     // Advisor
     var advisorSuggestionsUsed: Set<Int> = []
@@ -121,6 +128,10 @@ final class AppState {
         path = NavigationPath()
         currentUserID = nil
         currentUserName = ""
+        currentUserRole = "fisher"
+        currentBusinessName = ""
+        marketListings = []
+        myOffers = []
     }
 
     func applyUser(_ user: UserAccount) {
@@ -131,6 +142,9 @@ final class AppState {
         currentUserLandingSite = user.landingSite.isEmpty ? "Sabang Landing Site" : user.landingSite
         currentUserFID = user.fisherfolkID
         currentUserMobile = user.mobile
+        currentUserRole = user.role
+        currentBusinessName = user.businessName
+        tab = user.isBuyer ? .market : .home
         listingLocation = "\(currentUserLandingSite)\(currentUserProvince.isEmpty ? "" : ", \(currentUserProvince)")"
     }
 
