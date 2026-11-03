@@ -13,6 +13,13 @@ enum InputParsing {
         return m.count == 11 && m.hasPrefix("09")
     }
 
+    /// The name to greet someone by, skipping honorifics: "Mang Jose Dela Cruz" → "Jose".
+    static func firstName(_ fullName: String) -> String {
+        let honorifics: Set<String> = ["mang", "aling", "ka", "kuya", "ate", "manong", "manang", "mr.", "mrs.", "ms.", "mr", "mrs", "ms"]
+        let parts = fullName.split(separator: " ").map(String.init)
+        return parts.first { !honorifics.contains($0.lowercased()) } ?? parts.first ?? ""
+    }
+
     /// Password rules shown on the sign-up form: at least 8 characters with an uppercase letter,
     /// a lowercase letter and a number (e.g. "Kahitano1Jl").
     static let passwordRules: [(label: String, check: (String) -> Bool)] = [

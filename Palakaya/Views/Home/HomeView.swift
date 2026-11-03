@@ -37,7 +37,7 @@ struct HomeView: View {
                 // Header
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("\(greeting), \(appState.currentUserName.split(separator: " ").first.map(String.init) ?? "")")
+                        Text("\(greeting), \(InputParsing.firstName(appState.currentUserName))")
                             .font(.system(size: 19, weight: .bold))
                         HStack(spacing: 4) {
                             Image(systemName: "mappin.circle.fill").font(.system(size: 12)).foregroundColor(.pkSub)

@@ -114,7 +114,7 @@ struct AuthController {
     }
 
     private func welcome(for user: UserAccount) -> String {
-        let firstName = user.fullName.split(separator: " ").first.map(String.init) ?? "there"
+        let firstName = InputParsing.firstName(user.fullName).isEmpty ? "there" : InputParsing.firstName(user.fullName)
         return "Hi \(firstName)! Ask me about your catch, fish prices or selling. You can write in English or Filipino."
     }
 

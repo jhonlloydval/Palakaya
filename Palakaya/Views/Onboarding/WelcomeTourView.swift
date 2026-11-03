@@ -40,7 +40,7 @@ struct WelcomeTourView: View {
     }
 
     private var firstName: String {
-        appState.currentUserName.split(separator: " ").first.map(String.init) ?? ""
+        InputParsing.firstName(appState.currentUserName)
     }
 
     var body: some View {
