@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct AdvisorView: View {
+    @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \AdvisorMessageRecord.timestamp) private var messages: [AdvisorMessageRecord]
     @Query private var catches: [CatchRecord]
@@ -72,9 +73,10 @@ struct AdvisorView: View {
     }
 
     private func ask(_ question: String) {
-        modelContext.insert(AdvisorMessageRecord(isUser: true, text: question))
-        let reply = Advisor.reply(to: question, catches: catches)
-        modelContext.insert(AdvisorMessageRecord(isUser: false, text: reply))
-        try? modelContext.save()
+        do {
+            try AdvisorController(context: modelContext).ask(question, catches: catches)
+        } catch {
+            appState.errorMessage = "Your message could not be saved. Please try again."
+        }
     }
 }
