@@ -39,6 +39,13 @@ enum SyncService {
             role: user.role, business_name: user.businessName)])
     }
 
+    /// Whether the admin has verified this account (buyers get a Verified badge).
+    static func isVerified() async -> Bool {
+        struct Row: Decodable { let verified: Bool }
+        let rows: [Row]? = try? await SupabaseClient.shared.select("my_profile", query: "select=verified")
+        return rows?.first?.verified ?? false
+    }
+
     /// Downloads this account's catches so a reinstall or new phone gets them back.
     /// Local edits that have not uploaded yet win over the cloud copy.
     @discardableResult

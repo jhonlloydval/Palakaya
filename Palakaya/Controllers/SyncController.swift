@@ -12,6 +12,8 @@ enum SyncController {
             await sync(appState: appState, context: context)
             try await SyncService.pull(ownerID: user.id, context: context)
             await FairPriceService.refresh()
+            appState.currentUserVerified = await SyncService.isVerified()
+            await OfferController.refresh(appState: appState)
         } catch {
             appState.isOffline = isConnectivityError(error)
         }

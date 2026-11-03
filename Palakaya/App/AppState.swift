@@ -49,6 +49,8 @@ final class AppState {
     var currentUserRole: String = "fisher"
     var currentBusinessName: String = ""
     var isBuyer: Bool { currentUserRole == "buyer" }
+    /// Set by the admin in the cloud after checking a buyer's permit or ID.
+    var currentUserVerified = false
 
     // Login form
     var loginMobile: String = ""
@@ -130,6 +132,7 @@ final class AppState {
         currentUserName = ""
         currentUserRole = "fisher"
         currentBusinessName = ""
+        currentUserVerified = false
         marketListings = []
         myOffers = []
     }
