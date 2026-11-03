@@ -85,6 +85,16 @@ final class SupabaseClient {
         }
     }
 
+    /// Calls a Supabase Edge Function as the signed-in user and returns its JSON body.
+    func invoke<B: Encodable>(function name: String, body: B) async throws -> Data {
+        do {
+            return try await request("functions/v1/\(name)", method: "POST", body: body)
+        } catch CloudError.server(401, _) {
+            try await refresh()
+            return try await request("functions/v1/\(name)", method: "POST", body: body)
+        }
+    }
+
     /// Reads rows the signed-in user is allowed to see (Row Level Security applies).
     func select<T: Decodable>(_ table: String, query: String = "select=*") async throws -> [T] {
         let data: Data
@@ -129,7 +139,7 @@ final class SupabaseClient {
               let url = URL(string: path, relativeTo: base) else { throw CloudError.notConfigured }
         var req = URLRequest(url: url)
         req.httpMethod = method
-        req.timeoutInterval = 20
+        req.timeoutInterval = 60
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.setValue(key, forHTTPHeaderField: "apikey")
         if authorized {

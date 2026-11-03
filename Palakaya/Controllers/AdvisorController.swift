@@ -1,9 +1,8 @@
 import Foundation
 import SwiftData
 
-/// Very small rule-based advisor. Looks for species / keywords in the question
-/// and answers using the local FAIR_DB, so answers are always grounded in
-/// real numbers already in the app instead of being invented.
+/// Offline rule-based advisor, used when the AI Advisor cannot be reached. Looks for species / keywords
+/// in the question and answers using FAIR_DB, so answers stay grounded in numbers already in the app.
 enum Advisor {
     static func reply(to question: String, catches: [CatchRecord]) -> String {
         let q = question.lowercased()
@@ -45,13 +44,62 @@ enum Advisor {
     }
 }
 
-/// Stores the conversation and asks `Advisor` for the reply.
+/// Stores the conversation and gets the reply: from the AI Advisor (Supabase Edge Function `advisor`)
+/// when cloud sync is on, otherwise from the offline rule-based `Advisor`.
+@MainActor
 struct AdvisorController {
     let context: ModelContext
 
-    func ask(_ question: String, catches: [CatchRecord]) throws {
-        context.insert(AdvisorMessageRecord(isUser: true, text: question))
-        context.insert(AdvisorMessageRecord(isUser: false, text: Advisor.reply(to: question, catches: catches)))
+    private struct Turn: Codable { let role: String; let text: String }
+    private struct CatchSummary: Encodable {
+        let species: String, kg: Double, ground: String, date: String, status: String
+        let pricePerKg: Double?, saleAmount: Double?
+    }
+    private struct PriceSummary: Encodable { let low: Int, high: Int, source: String }
+    private struct Context: Encodable {
+        let municipality: String, province: String, landingSite: String, today: String
+        let catches: [CatchSummary]
+        let fairPrices: [String: PriceSummary]
+    }
+    private struct Request: Encodable { let question: String; let history: [Turn]; let context: Context }
+    private struct Reply: Decodable { let reply: String? }
+
+    func ask(_ question: String, catches: [CatchRecord], history: [AdvisorMessageRecord], appState: AppState) async throws {
+        let ownerID = appState.currentUserID
+        context.insert(AdvisorMessageRecord(isUser: true, text: question, ownerID: ownerID))
         try context.save()
+
+        let answer = await aiReply(question, catches: catches, history: history, appState: appState)
+            ?? Advisor.reply(to: question, catches: catches)
+        context.insert(AdvisorMessageRecord(isUser: false, text: answer, ownerID: ownerID))
+        try context.save()
+    }
+
+    /// Returns nil when the AI is unavailable (offline, not signed in, not deployed), so the offline advisor answers.
+    private func aiReply(_ question: String, catches: [CatchRecord], history: [AdvisorMessageRecord],
+                         appState: AppState) async -> String? {
+        guard AppConfig.isCloudEnabled, SupabaseClient.shared.isSignedIn else { return nil }
+        let day = Date.FormatStyle().year().month().day()
+        let ctx = Context(
+            municipality: appState.currentUserMunicipality, province: appState.currentUserProvince,
+            landingSite: appState.currentUserLandingSite, today: Date().formatted(day),
+            catches: catches.sorted { $0.dateLogged > $1.dateLogged }.prefix(40).map {
+                CatchSummary(species: $0.species, kg: $0.weight, ground: $0.ground, date: $0.dateLogged.formatted(day),
+                             status: $0.statusRaw, pricePerKg: $0.price, saleAmount: $0.saleAmount)
+            },
+            fairPrices: FAIR_DB.mapValues {
+                PriceSummary(low: $0.low, high: $0.high,
+                             source: $0.saleCount.map { "\($0) recent sales" } ?? "estimate")
+            })
+        let turns = history.suffix(6).map { Turn(role: $0.isUser ? "user" : "assistant", text: $0.text) }
+        do {
+            let data = try await SupabaseClient.shared.invoke(function: "advisor",
+                body: Request(question: question, history: turns, context: ctx))
+            appState.isOffline = false
+            return try JSONDecoder().decode(Reply.self, from: data).reply
+        } catch {
+            appState.isOffline = (error as? URLError) != nil
+            return nil
+        }
     }
 }

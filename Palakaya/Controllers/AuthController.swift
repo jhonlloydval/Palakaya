@@ -45,7 +45,7 @@ struct AuthController {
                                province: province, landingSite: landingSite, fisherfolkID: fisherfolkID)
         context.insert(user)
         let firstName = user.fullName.split(separator: " ").first.map(String.init) ?? "there"
-        context.insert(AdvisorMessageRecord(isUser: false, text: "Kamusta, \(firstName). Ano ang gusto mong malaman?"))
+        context.insert(AdvisorMessageRecord(isUser: false, text: "Kamusta, \(firstName). Ano ang gusto mong malaman?", ownerID: user.id))
         do { try context.save() } catch { throw AuthError.storageFailed }
         return user
     }
