@@ -5,6 +5,7 @@ struct LogCatchFlowView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @State private var search = ""
 
     var body: some View {
         @Bindable var appState = appState
@@ -42,16 +43,31 @@ struct LogCatchFlowView: View {
 
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundColor(.pkSub)
-                    Text("Search fish species").foregroundColor(.pkSub).font(.system(size: 14))
+                    TextField("Search fish species", text: $search)
+                        .font(.system(size: 16))
+                        .textInputAutocapitalization(.words)
+                        .autocorrectionDisabled()
+                    if !search.isEmpty {
+                        Button { search = "" } label: { Image(systemName: "xmark.circle.fill").foregroundColor(.pkSub) }
+                    }
                 }
                 .padding(.horizontal, 14).padding(.vertical, 11)
                 .background(Color.pkSurface).overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.pkBorder))
                 .clipShape(RoundedRectangle(cornerRadius: 12)).padding(.bottom, 12)
 
-                LabelCaps(text: "Recent Species").padding(.bottom, 8)
-                speciesGrid(RECENT_SPECIES, other: false)
-                    .padding(.bottom, 12)
-                speciesGrid(ALL_SPECIES.filter { !RECENT_SPECIES.contains($0) }, other: true)
+                if search.isEmpty {
+                    LabelCaps(text: "Recent Species").padding(.bottom, 8)
+                    speciesGrid(RECENT_SPECIES, other: false)
+                        .padding(.bottom, 12)
+                    speciesGrid(ALL_SPECIES.filter { !RECENT_SPECIES.contains($0) }, other: true)
+                } else {
+                    let matches = ALL_SPECIES.filter { $0.localizedCaseInsensitiveContains(search) }
+                    if matches.isEmpty {
+                        Text("No species found. Try another spelling.").font(.system(size: 13)).foregroundColor(.pkSub)
+                    } else {
+                        speciesGrid(matches, other: false)
+                    }
+                }
             }
         }
     }
