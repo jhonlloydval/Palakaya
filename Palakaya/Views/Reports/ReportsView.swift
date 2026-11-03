@@ -43,9 +43,15 @@ struct ReportsView: View {
                     Divider().overlay(Color.pkBorder)
                 }
 
-                HStack(spacing: 12) {
-                    GhostButton(title: "Download", systemImage: "arrow.down.circle") {}
-                    GhostButton(title: "Share", systemImage: "square.and.arrow.up") {}
+                ShareLink(item: summary.shareText) {
+                    Label("Share Report", systemImage: "square.and.arrow.up")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .frame(minHeight: 52)
+                        .background(Color.pkSurface)
+                        .foregroundColor(.pkDark)
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.pkBorder))
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
                 .padding(.top, 20)
             }

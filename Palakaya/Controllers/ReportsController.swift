@@ -9,6 +9,21 @@ struct ReportSummary {
     var dailyKg: [Double]
     var topSpecies: [(name: String, kg: Double)]
     var isEmpty: Bool { totalKg == 0 }
+
+    /// Plain-text version for sharing by SMS, Messenger or email.
+    var shareText: String {
+        var lines = [
+            "Palakaya catch report – \(monthLabel)",
+            "Total catch: \(totalKg.pkTrimmed) kg",
+            "Recorded sales: ₱\(salesTotal.formatted())",
+            "Average price alignment: \(averageAlignment.map { "\($0)%" } ?? "no sales yet")",
+            "Days fished: \(fishingDays)",
+        ]
+        if !topSpecies.isEmpty {
+            lines.append("Top species: " + topSpecies.map { "\($0.name) \($0.kg.pkTrimmed) kg" }.joined(separator: ", "))
+        }
+        return lines.joined(separator: "\n")
+    }
 }
 
 /// Builds the "My Reports" numbers from the fisher's own catch records.
