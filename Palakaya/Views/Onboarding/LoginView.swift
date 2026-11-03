@@ -9,17 +9,12 @@ struct LoginView: View {
         @Bindable var appState = appState
         ScrollView {
             VStack(spacing: 0) {
-                VStack(spacing: 12) {
-                    Image("PalakayaAppIcon")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 64, height: 64)
-                    VStack(spacing: 2) {
-                        Text("PALAKAYA").font(.system(size: 22, weight: .bold)).tracking(0.6)
-                        Text("Catch. Connect. Get a Fair Price.").font(.system(size: 13)).foregroundColor(.pkSub)
-                    }
-                }
-                .padding(.bottom, 36)
+                Image("PalakayaLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 200)
+                    .accessibilityLabel("Palakaya. Catch. Connect. Get a Fair Price.")
+                    .padding(.bottom, 28)
 
                 PKTextField(placeholder: "09XX XXX XXXX", text: $appState.loginMobile, keyboard: .phonePad)
                     .pkField("Mobile Number")

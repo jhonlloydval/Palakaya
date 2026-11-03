@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Color palette (matches original design)
+// MARK: - Color palette (matches the Palakaya logo: ocean blue, navy, sea teal)
 
 extension Color {
     init(hex: String) {
@@ -13,9 +13,9 @@ extension Color {
         self.init(red: r, green: g, blue: b)
     }
 
-    static let pkDark = Color(hex: "085078")
-    static let pkAqua = Color(hex: "85D8CE")
-    static let pkNavy = Color(hex: "07344C")
+    static let pkDark = Color(hex: "0261A7")
+    static let pkAqua = Color(hex: "2ED5CC")
+    static let pkNavy = Color(hex: "01447E")
     static let pkBg = Color(hex: "F5F8F8")
     static let pkSurface = Color.white
     static let pkSurface2 = Color(hex: "EDF7F6")
@@ -33,7 +33,7 @@ extension Color {
 }
 
 extension LinearGradient {
-    static let pkBrand = LinearGradient(colors: [Color.pkDark, Color.pkAqua], startPoint: .topLeading, endPoint: .bottomTrailing)
+    static let pkBrand = LinearGradient(colors: [Color.pkDark, Color.pkNavy], startPoint: .topLeading, endPoint: .bottomTrailing)
 }
 
 // MARK: - Tone (badges / status boxes)
