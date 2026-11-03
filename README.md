@@ -255,8 +255,8 @@ What works in this build:
 | Monthly report and share | ✅ Working, from real records |
 | Cloud sync (upload and download) with row-level security | ✅ Working |
 | Anonymized regional summary for BFAR / LGU (`regional_catch_summary`) | ✅ In the database; no dashboard yet |
-| Buyer accounts and buyer verification | 🔜 Planned |
-| SMS / USSD entry | 🔜 Planned |
+| Buyer accounts and buyer verification | 🔜 Next (buyer offers use sample buyers for now) |
+| SMS / USSD entry | Future work, outside this project |
 
 ---
 
@@ -504,24 +504,23 @@ Without any setup the app runs **fully offline**: your data stays on the phone a
 
 | Feature | Status |
 |---|---|
+| **Mobile Application Development — Finals Requirement** | ✅ Completed |
 | Fisher profile, catch logging, and catch history | ✅ Complete |
-| Fair-price benchmarking engine | ✅ Complete |
+| Fair-price benchmarking from real sales | ✅ Complete |
 | Marketplace listing & buyer matching | ✅ Complete |
 | Transaction recording & price-alignment scoring | ✅ Complete |
 | Catch & Market Advisor (real AI with Google Gemini, offline fallback) | ✅ Complete |
 | Catch & income report generation and sharing | ✅ Complete |
 | Native SwiftUI iOS app (MVC) with offline storage | ✅ Complete |
 | Cloud database, login, and two-way sync (Supabase, row-level security) | ✅ Complete |
-| Shared marketplace and fair prices from real sales | ✅ Complete |
-| Buyer accounts and buyer verification | 🔜 Planned |
-| SMS/USSD entry for phones without data | 🔜 Planned |
-| BFAR / LGU dashboard on top of `regional_catch_summary` | 🔜 Planned |
-| In-app payment & escrow so sales can settle without leaving Palakaya | 🔜 Planned |
-| Full SMS/USSD marketplace transactions (not just entry & lookup) | 🔜 Planned |
-| Partnership toward a government-audited price index | 🔜 Planned |
-| Extending the reference architecture to other Philippine agricultural markets | 🔜 Planned |
-| Deeper cooperative-organizing tools built on aggregate catch data | 🔜 Planned |
-| Formal impact evaluation on fisher income and bargaining position, as ABALOBI has undergone | 🔜 Planned |
+
+**Beyond this project (future work):**
+
+| Idea | Why it is outside this build |
+|---|---|
+| In-app payment & escrow | Handling money needs a licensed payment provider; fishers and buyers pay each other directly for now |
+| SMS/USSD access for phones without data | Needs a telecom short-code partner |
+| BFAR / LGU dashboard on `regional_catch_summary` | The anonymized data is already collected; only the government-facing screen is left |
 
 ---
 
