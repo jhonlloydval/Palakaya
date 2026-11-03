@@ -9,7 +9,20 @@ struct ProfileView: View {
     private var totalKg: Double { catches.reduce(0) { $0 + $1.weight } }
     private var sales: Int { catches.filter { $0.status == .sold }.count }
 
-    private let rows: [(String, String, Route?)] = [
+    private var buyerOffers: [Offer] { appState.myOffers.filter(\.iAmBuyer) }
+
+    private let buyerRows: [(String, String, Route?)] = [
+        ("person.fill", "Personal Information", .profileInfo(.personal)),
+        ("checkmark.seal.fill", "Buyer Verification", .profileInfo(.verification)),
+        ("wifi", "Connectivity & Offline Data", .profileInfo(.connectivity)),
+        ("lock.fill", "Privacy", .profileInfo(.privacy)),
+        ("questionmark.circle.fill", "Help Center", .profileInfo(.help)),
+        ("info.circle.fill", "About Palakaya", .profileInfo(.about)),
+    ]
+
+    private var rows: [(String, String, Route?)] { appState.isBuyer ? buyerRows : fisherRows }
+
+    private let fisherRows: [(String, String, Route?)] = [
         ("person.fill", "Personal Information", .profileInfo(.personal)),
         ("water.waves", "Fisherfolk Details", .profileInfo(.fisherfolk)),
         ("mappin.circle.fill", "Landing Site", .profileInfo(.landing)),
@@ -32,12 +45,22 @@ struct ProfileView: View {
                     HStack(spacing: 4) {
                         Text(appState.currentUserName.isEmpty ? "Fisher" : appState.currentUserName)
                             .font(.system(size: 18, weight: .bold))
-                        Image(systemName: "checkmark.seal.fill").font(.system(size: 14)).foregroundColor(.pkDark)
+                        if !appState.isBuyer || appState.currentUserVerified {
+                            Image(systemName: "checkmark.seal.fill").font(.system(size: 14)).foregroundColor(.pkDark)
+                        }
                     }
-                    Text(appState.currentUserFID.isEmpty ? "Municipal Fisher" : "Registered Municipal Fisher").font(.system(size: 13)).foregroundColor(.pkSub)
+                    if appState.isBuyer {
+                        Text(appState.currentBusinessName).font(.system(size: 13, weight: .semibold)).foregroundColor(.pkText)
+                        Text(appState.currentUserVerified ? "Verified Buyer" : "Buyer · verification pending")
+                            .font(.system(size: 13)).foregroundColor(appState.currentUserVerified ? .pkSuccess : .pkWarning)
+                    } else {
+                        Text(appState.currentUserFID.isEmpty ? "Municipal Fisher" : "Registered Municipal Fisher").font(.system(size: 13)).foregroundColor(.pkSub)
+                    }
                     HStack(spacing: 4) {
                         Image(systemName: "mappin.circle.fill").font(.system(size: 11)).foregroundColor(.pkSub)
-                        Text(appState.currentUserLandingSite.isEmpty ? "Sabang Landing Site, Batangas" : "\(appState.currentUserLandingSite), \(appState.currentUserProvince)")
+                        Text(appState.isBuyer
+                             ? [appState.currentUserMunicipality, appState.currentUserProvince].filter { !$0.isEmpty }.joined(separator: ", ")
+                             : (appState.currentUserLandingSite.isEmpty ? "Sabang Landing Site, Batangas" : "\(appState.currentUserLandingSite), \(appState.currentUserProvince)"))
                             .font(.system(size: 12.5)).foregroundColor(.pkSub)
                     }
                 }
@@ -45,9 +68,15 @@ struct ProfileView: View {
                 .padding(.bottom, 20)
 
                 HStack(spacing: 0) {
-                    StatBox(label: "Caught", value: "\(Int(totalKg))kg")
-                    Divider().overlay(Color.pkBorder)
-                    StatBox(label: "Sales", value: "\(sales)")
+                    if appState.isBuyer {
+                        StatBox(label: "Offers", value: "\(buyerOffers.count)")
+                        Divider().overlay(Color.pkBorder)
+                        StatBox(label: "Purchases", value: "\(buyerOffers.filter { $0.status == .paid }.count)")
+                    } else {
+                        StatBox(label: "Caught", value: "\(Int(totalKg))kg")
+                        Divider().overlay(Color.pkBorder)
+                        StatBox(label: "Sales", value: "\(sales)")
+                    }
                 }
                 .padding(16)
                 .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.pkBorder))

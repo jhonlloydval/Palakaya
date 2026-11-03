@@ -4,6 +4,7 @@ enum ProfileSection: String, Hashable {
     case personal = "Personal Information"
     case fisherfolk = "Fisherfolk Details"
     case landing = "Landing Site"
+    case verification = "Buyer Verification"
     case connectivity = "Connectivity & Offline Data"
     case privacy = "Privacy"
     case help = "Help Center"
@@ -30,6 +31,10 @@ struct ProfileInfoView: View {
                 case .landing:
                     row("Home port / landing site", appState.currentUserLandingSite)
                     row("Province / Region", appState.currentUserProvince)
+                case .verification:
+                    row("Business", appState.currentBusinessName)
+                    row("Status", appState.currentUserVerified ? "Verified ✓" : "Pending review")
+                    InfoBox(text: "To get the Verified badge, send a photo of your business permit, cooperative registration or government ID to your Municipal Agriculture Office or the Palakaya team. Fishers see the badge on your offers.")
                 case .connectivity:
                     InfoBox(text: "Your catches are saved on this phone, so you can log them even without a signal.")
                     InfoBox(text: "When you have signal, new catches, listings and sales upload to your Palakaya cloud account automatically. Tap the Wi-Fi button on Home to sync now.")
