@@ -10,6 +10,7 @@ enum ProfileSection: String, Hashable {
     case privacy = "Privacy"
     case help = "Help Center"
     case about = "About Palakaya"
+    case demo = "Demo Tools"
 }
 
 /// The page behind each Profile menu row.
@@ -28,6 +29,7 @@ struct ProfileInfoView: View {
                 case .privacy: PrivacySection()
                 case .help: HelpSection()
                 case .about: AboutSection()
+                case .demo: DemoSection()
                 }
             }
             .padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 32)
@@ -421,6 +423,62 @@ private struct HelpSection: View {
             Fact(icon: "building.columns.fill", text: "Your Municipal Agriculture Office can help with FishR registration, permits and fisheries programs.")
             Fact(icon: "exclamationmark.triangle.fill", text: "For storms and emergencies at sea, follow PAGASA and call the Philippine Coast Guard.")
         }
+    }
+}
+
+// MARK: - Demo tools
+
+private struct DemoSection: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.modelContext) private var modelContext
+    @State private var samples = 0
+    @State private var message: String?
+
+    var body: some View {
+        Panel(title: "Sample data") {
+            Text("Adds three weeks of example catches and sales to this account so every screen has something to show. They stay on this phone and never upload, so real fair prices are not affected.")
+                .font(.system(size: 15)).foregroundColor(.pkSub).lineSpacing(2)
+            if appState.isBuyer {
+                Text("Sample catches are for fisher accounts. Log in as a fisher to use them.")
+                    .font(.system(size: 14, weight: .medium)).foregroundColor(.pkWarning)
+            } else if samples > 0 {
+                Text("\(samples) sample catches are on this account.").font(.system(size: 14, weight: .semibold)).foregroundColor(.pkSuccess)
+                GhostButton(title: "Remove sample data", systemImage: "trash") { remove() }
+            } else {
+                PrimaryButton(title: "Fill with sample data", systemImage: "wand.and.stars") { add() }
+            }
+            if let message { Text(message).font(.system(size: 13.5)).foregroundColor(.pkSub) }
+        }
+        Panel(title: "Walkthroughs") {
+            GhostButton(title: "Replay the welcome tour", systemImage: "play.circle") { appState.showWelcomeTour = true }
+            GhostButton(title: "See the intro screens again", systemImage: "sparkles.rectangle.stack") { appState.logout() }
+            Text("The intro screens are shown on the login side, so this logs you out first.")
+                .font(.system(size: 13)).foregroundColor(.pkSub)
+        }
+        Panel(title: "Good to show") {
+            Fact(icon: "moon.fill", text: "Dark Mode follows the phone. Switch it in Control Center to show both looks.")
+            Fact(icon: "wifi.slash", text: "Turn on Airplane Mode and log a catch: it saves, then uploads when you're back online.")
+            Fact(icon: "sparkles", text: "Ask the Advisor something off-topic to show it stays on fishing.")
+        }
+        .onAppear(perform: count)
+    }
+
+    private func count() { samples = DemoController(context: modelContext).sampleCount(ownerID: appState.currentUserID) }
+
+    private func add() {
+        do {
+            try DemoController(context: modelContext).addSampleData(ownerID: appState.currentUserID, landingSite: appState.currentUserLandingSite)
+            message = "Added. Check Home, My Catch and Reports."
+        } catch { message = "Could not add sample data." }
+        count()
+    }
+
+    private func remove() {
+        do {
+            try DemoController(context: modelContext).removeSampleData()
+            message = "Sample data removed."
+        } catch { message = "Could not remove sample data." }
+        count()
     }
 }
 

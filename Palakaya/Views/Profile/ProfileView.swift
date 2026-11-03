@@ -18,6 +18,7 @@ struct ProfileView: View {
         ("lock.fill", "Privacy", .profileInfo(.privacy)),
         ("questionmark.circle.fill", "Help Center", .profileInfo(.help)),
         ("info.circle.fill", "About Palakaya", .profileInfo(.about)),
+        ("wand.and.stars", "Demo Tools", .profileInfo(.demo)),
     ]
 
     private var rows: [(String, String, Route?)] { appState.isBuyer ? buyerRows : fisherRows }
@@ -31,6 +32,7 @@ struct ProfileView: View {
         ("lock.fill", "Privacy", .profileInfo(.privacy)),
         ("questionmark.circle.fill", "Help Center", .profileInfo(.help)),
         ("info.circle.fill", "About Palakaya", .profileInfo(.about)),
+        ("wand.and.stars", "Demo Tools", .profileInfo(.demo)),
     ]
 
     var body: some View {

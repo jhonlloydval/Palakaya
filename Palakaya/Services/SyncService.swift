@@ -107,7 +107,9 @@ enum SyncService {
         guard AppConfig.isCloudEnabled else { throw CloudError.notConfigured }
         guard SupabaseClient.shared.isSignedIn else { throw CloudError.notSignedIn }
 
+        let samples = DemoController.sampleIDs
         let pending = try context.fetch(FetchDescriptor<CatchRecord>(predicate: #Predicate { $0.needsSync }))
+            .filter { !samples.contains($0.id) }
         let rows = pending.map {
             CatchRow(id: $0.id, species: $0.species, weight_kg: $0.weight, fishing_ground: $0.ground,
                      caught_at: $0.dateLogged, status: $0.statusRaw, price_per_kg: $0.price,
