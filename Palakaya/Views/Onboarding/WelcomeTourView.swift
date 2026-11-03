@@ -22,7 +22,7 @@ struct WelcomeTourView: View {
                 TourTip(icon: "creditcard.fill", title: "Pay when accepted",
                         detail: "Accepted offers appear in My Offers. Pay there and keep the receipt."),
                 TourTip(icon: "checkmark.seal.fill", title: "Get verified",
-                        detail: "Add your business permit in Profile to earn the Verified badge fishers trust."),
+                        detail: "See Profile → Buyer Verification to earn the Verified badge that fishers trust."),
             ]
         }
         return [
