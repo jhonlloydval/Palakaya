@@ -32,7 +32,7 @@ struct ProfileInfoView: View {
                     row("Province / Region", appState.currentUserProvince)
                 case .connectivity:
                     InfoBox(text: "Your catches are saved on this phone, so you can log them even without a signal.")
-                    InfoBox(text: "Cloud sync across devices is coming in the final version.")
+                    InfoBox(text: "When you have signal, new catches, listings and sales upload to your Palakaya cloud account automatically. Tap the Wi-Fi button on Home to sync now.")
                 case .privacy:
                     InfoBox(text: "Your personal catch records stay private. Only anonymized, grouped regional data is shared with BFAR and local government fisheries offices.")
                     InfoBox(text: "We collect only what the app needs: your name, mobile number, location and catch records.")
