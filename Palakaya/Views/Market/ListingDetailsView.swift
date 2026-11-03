@@ -73,6 +73,7 @@ struct ListingDetailsView: View {
                 .padding(.horizontal, 20).padding(.bottom, 28)
             }
             .background(Color.pkBg)
+            .task { await OfferController.refresh(appState: appState) }
             .navigationTitle("Listing")
             .navigationBarTitleDisplayMode(.inline)
         }
