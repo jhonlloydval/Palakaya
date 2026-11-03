@@ -75,7 +75,7 @@ struct PrimaryButton: View {
                 Text(title).fontWeight(.semibold)
             }
             .frame(maxWidth: full ? .infinity : nil)
-            .padding(.vertical, 14)
+            .frame(minHeight: 52)
             .padding(.horizontal, full ? 0 : 22)
             .background(Color.pkDark)
             .foregroundColor(.white)
@@ -94,7 +94,7 @@ struct GradientButton: View {
         Button(action: action) {
             Text(title).fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
+                .frame(minHeight: 52)
                 .background(LinearGradient.pkBrand)
                 .foregroundColor(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -115,7 +115,7 @@ struct GhostButton: View {
                 Text(title).fontWeight(.semibold)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .frame(minHeight: 52)
             .background(Color.pkSurface)
             .foregroundColor(.pkDark)
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.pkBorder))
@@ -205,8 +205,9 @@ struct PKTextField: View {
                     .keyboardType(keyboard)
             }
         }
-        .font(.system(size: 15))
+        .font(.system(size: 16))
         .padding(12)
+        .frame(minHeight: 48)
         .background(Color.pkSurface)
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.pkBorder))
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
