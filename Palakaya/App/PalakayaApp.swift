@@ -33,7 +33,7 @@ struct PalakayaApp: App {
 
         let demoUser = UserAccount(
             fullName: "Mang Jose Dela Cruz",
-            mobile: "0917 234 5678",
+            mobile: "09172345678",
             password: "password",
             municipality: "Bauan",
             province: "Batangas, CALABARZON",
@@ -51,10 +51,11 @@ struct PalakayaApp: App {
         for s in seedCatches {
             let c = CatchRecord(species: s.0, weight: s.1, ground: s.2, timeLabel: s.3, status: s.4,
                                  price: s.5, saleAmount: s.6, buyerName: s.7, alignment: s.8, buyersInterested: s.9)
+            c.ownerID = demoUser.id
             context.insert(c)
         }
 
-        let welcome = AdvisorMessageRecord(isUser: false, text: "Kamusta, Mang Jose. Ano ang gusto mong malaman?")
+        let welcome = AdvisorMessageRecord(isUser: false, text: "Kamusta, Mang Jose. Ano ang gusto mong malaman?", ownerID: demoUser.id)
         context.insert(welcome)
 
         try? context.save()

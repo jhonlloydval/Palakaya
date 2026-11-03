@@ -5,6 +5,7 @@ struct LogCatchFlowView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @State private var search = ""
 
     var body: some View {
         @Bindable var appState = appState
@@ -42,16 +43,31 @@ struct LogCatchFlowView: View {
 
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundColor(.pkSub)
-                    Text("Search fish species").foregroundColor(.pkSub).font(.system(size: 14))
+                    TextField("Search fish species", text: $search)
+                        .font(.system(size: 16))
+                        .textInputAutocapitalization(.words)
+                        .autocorrectionDisabled()
+                    if !search.isEmpty {
+                        Button { search = "" } label: { Image(systemName: "xmark.circle.fill").foregroundColor(.pkSub) }
+                    }
                 }
                 .padding(.horizontal, 14).padding(.vertical, 11)
                 .background(Color.pkSurface).overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.pkBorder))
                 .clipShape(RoundedRectangle(cornerRadius: 12)).padding(.bottom, 12)
 
-                LabelCaps(text: "Recent Species").padding(.bottom, 8)
-                speciesGrid(RECENT_SPECIES, other: false)
-                    .padding(.bottom, 12)
-                speciesGrid(ALL_SPECIES.filter { !RECENT_SPECIES.contains($0) }, other: true)
+                if search.isEmpty {
+                    LabelCaps(text: "Recent Species").padding(.bottom, 8)
+                    speciesGrid(RECENT_SPECIES, other: false)
+                        .padding(.bottom, 12)
+                    speciesGrid(ALL_SPECIES.filter { !RECENT_SPECIES.contains($0) }, other: true)
+                } else {
+                    let matches = ALL_SPECIES.filter { $0.localizedCaseInsensitiveContains(search) }
+                    if matches.isEmpty {
+                        Text("No species found. Try another spelling.").font(.system(size: 13)).foregroundColor(.pkSub)
+                    } else {
+                        speciesGrid(matches, other: false)
+                    }
+                }
             }
         }
     }
@@ -97,14 +113,13 @@ struct LogCatchFlowView: View {
 
                 PKTextField(text: $appState.lcGround).pkField("Fishing Ground")
 
-                HStack {
-                    Image(systemName: "calendar").foregroundColor(.pkSub)
-                    Text("Today, 6:45 AM").foregroundColor(.pkText)
-                }
-                .padding(.horizontal, 14).padding(.vertical, 12)
-                .background(Color.pkSurface2)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .pkField("Date & Time")
+                DatePicker("", selection: $appState.lcDate, in: ...Date(), displayedComponents: [.date, .hourAndMinute])
+                    .labelsHidden()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14).padding(.vertical, 8)
+                    .background(Color.pkSurface2)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .pkField("Date & Time")
 
                 Button {
                     appState.lcPhoto.toggle()
@@ -120,7 +135,7 @@ struct LogCatchFlowView: View {
                 .buttonStyle(.plain)
                 .pkField("Photo of Catch (optional)")
 
-                PrimaryButton(title: "Review Catch", isDisabled: (Double(appState.lcWeight) ?? 0) <= 0) {
+                PrimaryButton(title: "Review Catch", isDisabled: InputParsing.weightKg(appState.lcWeight) == nil) {
                     appState.lcStep = 3
                 }
                 .padding(.top, 4)
@@ -129,7 +144,7 @@ struct LogCatchFlowView: View {
     }
 
     private var reviewStep: some View {
-        let weight = Double(appState.lcWeight) ?? 0
+        let weight = InputParsing.weightKg(appState.lcWeight) ?? 0
         let fair = appState.lcSpecies.flatMap { FAIR_DB[$0] }
         return ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -140,14 +155,14 @@ struct LogCatchFlowView: View {
                     Text("\(weight.pkTrimmed) kg").font(.system(size: 13)).foregroundColor(.pkSub).padding(.bottom, 8)
                     HStack(spacing: 4) { Image(systemName: "mappin.circle.fill").font(.system(size: 12)); Text(appState.lcGround).font(.system(size: 13)) }
                         .foregroundColor(.pkSub)
-                    HStack(spacing: 4) { Image(systemName: "clock").font(.system(size: 12)); Text("Today · 6:45 AM").font(.system(size: 13)) }
+                    HStack(spacing: 4) { Image(systemName: "clock").font(.system(size: 12)); Text("\(appState.lcDate.pkDayLabel) · \(appState.lcDate.pkTimeLabel)").font(.system(size: 13)) }
                         .foregroundColor(.pkSub)
                 }
                 .padding(.bottom, 16)
 
                 if let fair {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Fair Price").font(.system(size: 13)).foregroundColor(.pkSub)
+                        Text("Estimated Fair Price").font(.system(size: 13)).foregroundColor(.pkSub)
                         Text("₱\(fair.low)–₱\(fair.high)/kg").font(.system(size: 18, weight: .bold)).foregroundColor(.pkDark).padding(.bottom, 8)
                         Text("Potential Value").font(.system(size: 13)).foregroundColor(.pkSub)
                         Text("₱\(Int(weight * Double(fair.low)).formatted())–₱\(Int(weight * Double(fair.high)).formatted())")
@@ -169,12 +184,19 @@ struct LogCatchFlowView: View {
 
     private func save(andList: Bool) {
         guard let species = appState.lcSpecies else { return }
-        let weight = Double(appState.lcWeight) ?? 0
-        let record = CatchRecord(species: species, weight: weight, ground: appState.lcGround, timeLabel: "6:45 AM")
-        modelContext.insert(record)
-        try? modelContext.save()
+        let weight = InputParsing.weightKg(appState.lcWeight) ?? 0
+        let record: CatchRecord
+        do {
+            record = try CatchController(context: modelContext)
+                .saveCatch(ownerID: appState.currentUserID, species: species, weight: weight, ground: appState.lcGround,
+                           date: appState.lcDate, hasPhoto: appState.lcPhoto)
+        } catch {
+            appState.errorMessage = "Your catch could not be saved. Please try again."
+            return
+        }
 
         appState.activeCatchID = record.id
+        Task { await SyncController.sync(appState: appState, context: modelContext) }
         appState.resetLogCatch()
         dismiss()
 

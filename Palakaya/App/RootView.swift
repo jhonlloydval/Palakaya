@@ -13,5 +13,13 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: appState.phase)
+        .alert("Something went wrong", isPresented: Binding(
+            get: { appState.errorMessage != nil },
+            set: { if !$0 { appState.errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(appState.errorMessage ?? "")
+        }
     }
 }

@@ -1,0 +1,6 @@
+.DS_Store
+xcuserdata/
+*.xcuserstate
+build/
+DerivedData/
+Palakaya/Config/Secrets.plist

@@ -3,21 +3,21 @@ import SwiftData
 
 struct ProfileView: View {
     @Environment(AppState.self) private var appState
-    @Query private var catches: [CatchRecord]
+    @Query private var allCatches: [CatchRecord]
+    private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     private var totalKg: Double { catches.reduce(0) { $0 + $1.weight } }
     private var sales: Int { catches.filter { $0.status == .sold }.count }
 
     private let rows: [(String, String, Route?)] = [
-        ("person.fill", "Personal Information", nil),
-        ("water.waves", "Fisherfolk Details", nil),
-        ("mappin.circle.fill", "Landing Site", nil),
-        ("star.fill", "Saved Buyers", nil),
+        ("person.fill", "Personal Information", .profileInfo(.personal)),
+        ("water.waves", "Fisherfolk Details", .profileInfo(.fisherfolk)),
+        ("mappin.circle.fill", "Landing Site", .profileInfo(.landing)),
         ("doc.text.fill", "Reports", .reports),
-        ("wifi", "Connectivity & Offline Data", nil),
-        ("lock.fill", "Privacy", nil),
-        ("questionmark.circle.fill", "Help Center", nil),
-        ("info.circle.fill", "About Palakaya", nil),
+        ("wifi", "Connectivity & Offline Data", .profileInfo(.connectivity)),
+        ("lock.fill", "Privacy", .profileInfo(.privacy)),
+        ("questionmark.circle.fill", "Help Center", .profileInfo(.help)),
+        ("info.circle.fill", "About Palakaya", .profileInfo(.about)),
     ]
 
     var body: some View {
@@ -30,11 +30,11 @@ struct ProfileView: View {
                         Text(appState.userInitials).font(.system(size: 24, weight: .bold)).foregroundColor(.white)
                     }
                     HStack(spacing: 4) {
-                        Text(appState.currentUserName.isEmpty ? "Mang Jose Dela Cruz" : appState.currentUserName)
+                        Text(appState.currentUserName.isEmpty ? "Fisher" : appState.currentUserName)
                             .font(.system(size: 18, weight: .bold))
                         Image(systemName: "checkmark.seal.fill").font(.system(size: 14)).foregroundColor(.pkDark)
                     }
-                    Text("Verified Municipal Fisher").font(.system(size: 13)).foregroundColor(.pkSub)
+                    Text(appState.currentUserFID.isEmpty ? "Municipal Fisher" : "Registered Municipal Fisher").font(.system(size: 13)).foregroundColor(.pkSub)
                     HStack(spacing: 4) {
                         Image(systemName: "mappin.circle.fill").font(.system(size: 11)).foregroundColor(.pkSub)
                         Text(appState.currentUserLandingSite.isEmpty ? "Sabang Landing Site, Batangas" : "\(appState.currentUserLandingSite), \(appState.currentUserProvince)")
@@ -48,8 +48,6 @@ struct ProfileView: View {
                     StatBox(label: "Caught", value: "\(Int(totalKg))kg")
                     Divider().overlay(Color.pkBorder)
                     StatBox(label: "Sales", value: "\(sales)")
-                    Divider().overlay(Color.pkBorder)
-                    StatBox(label: "Rating", value: "4.9★")
                 }
                 .padding(16)
                 .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.pkBorder))

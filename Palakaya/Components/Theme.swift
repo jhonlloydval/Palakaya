@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Color palette (matches original design)
+// MARK: - Color palette (matches the Palakaya logo: ocean blue, navy, sea teal)
 
 extension Color {
     init(hex: String) {
@@ -13,9 +13,9 @@ extension Color {
         self.init(red: r, green: g, blue: b)
     }
 
-    static let pkDark = Color(hex: "085078")
-    static let pkAqua = Color(hex: "85D8CE")
-    static let pkNavy = Color(hex: "07344C")
+    static let pkDark = Color(hex: "0261A7")
+    static let pkAqua = Color(hex: "2ED5CC")
+    static let pkNavy = Color(hex: "01447E")
     static let pkBg = Color(hex: "F5F8F8")
     static let pkSurface = Color.white
     static let pkSurface2 = Color(hex: "EDF7F6")
@@ -33,7 +33,7 @@ extension Color {
 }
 
 extension LinearGradient {
-    static let pkBrand = LinearGradient(colors: [Color.pkDark, Color.pkAqua], startPoint: .topLeading, endPoint: .bottomTrailing)
+    static let pkBrand = LinearGradient(colors: [Color.pkDark, Color.pkNavy], startPoint: .topLeading, endPoint: .bottomTrailing)
 }
 
 // MARK: - Tone (badges / status boxes)
@@ -75,7 +75,7 @@ struct PrimaryButton: View {
                 Text(title).fontWeight(.semibold)
             }
             .frame(maxWidth: full ? .infinity : nil)
-            .padding(.vertical, 14)
+            .frame(minHeight: 52)
             .padding(.horizontal, full ? 0 : 22)
             .background(Color.pkDark)
             .foregroundColor(.white)
@@ -94,7 +94,7 @@ struct GradientButton: View {
         Button(action: action) {
             Text(title).fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
+                .frame(minHeight: 52)
                 .background(LinearGradient.pkBrand)
                 .foregroundColor(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -115,7 +115,7 @@ struct GhostButton: View {
                 Text(title).fontWeight(.semibold)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .frame(minHeight: 52)
             .background(Color.pkSurface)
             .foregroundColor(.pkDark)
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.pkBorder))
@@ -205,8 +205,9 @@ struct PKTextField: View {
                     .keyboardType(keyboard)
             }
         }
-        .font(.system(size: 15))
+        .font(.system(size: 16))
         .padding(12)
+        .frame(minHeight: 48)
         .background(Color.pkSurface)
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.pkBorder))
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))

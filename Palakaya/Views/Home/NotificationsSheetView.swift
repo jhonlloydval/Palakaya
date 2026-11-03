@@ -1,8 +1,15 @@
 import SwiftUI
+import SwiftData
 
 struct NotificationsSheetView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
+    @Query(sort: \CatchRecord.dateLogged, order: .reverse) private var allCatches: [CatchRecord]
+
+    private var items: [NotificationItem] {
+        NotificationsController.items(catches: allCatches.owned(by: appState.currentUserID),
+                                      market: appState.marketListings, marketIsSample: appState.marketIsSample)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -13,8 +20,13 @@ struct NotificationsSheetView: View {
             }
             .padding(.bottom, 16)
 
+            if items.isEmpty {
+                Text("No notifications yet. Sales, listings and price updates will show up here.")
+                    .font(.system(size: 13.5)).foregroundColor(.pkSub)
+                Spacer()
+            }
             ScrollView {
-                ForEach(NOTIFS) { n in
+                ForEach(items) { n in
                     HStack(alignment: .top, spacing: 12) {
                         ZStack {
                             Circle().fill(Color.pkSurface2).frame(width: 36, height: 36)

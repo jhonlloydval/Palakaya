@@ -3,7 +3,8 @@ import SwiftData
 
 struct MyCatchView: View {
     @Environment(AppState.self) private var appState
-    @Query(sort: \CatchRecord.dateLogged, order: .reverse) private var catches: [CatchRecord]
+    @Query(sort: \CatchRecord.dateLogged, order: .reverse) private var allCatches: [CatchRecord]
+    private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     private var filtered: [CatchRecord] {
         switch appState.historyFilter {
@@ -12,7 +13,7 @@ struct MyCatchView: View {
         default: return catches
         }
     }
-    private var monthWeight: Double { catches.reduce(0) { $0 + $1.weight } + 175.6 }
+    private var summary: ReportSummary { ReportsController.summary(for: catches) }
 
     var body: some View {
         @Bindable var appState = appState
@@ -21,9 +22,9 @@ struct MyCatchView: View {
                 Text("My Catch").font(.system(size: 26, weight: .bold)).padding(.top, 16).padding(.bottom, 16)
 
                 HStack(spacing: 8) {
-                    StatBox(label: "This Month", value: "\(monthWeight.pkTrimmed) kg")
-                    StatBox(label: "Est. Income", value: "₱32,850")
-                    StatBox(label: "Trips", value: "14")
+                    StatBox(label: "This Month", value: "\(summary.totalKg.pkTrimmed) kg")
+                    StatBox(label: "Sales", value: "₱\(summary.salesTotal.formatted())")
+                    StatBox(label: "Days Fished", value: "\(summary.fishingDays)")
                 }
                 .padding(16)
                 .background(Color.pkSurface)

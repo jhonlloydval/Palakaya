@@ -3,7 +3,9 @@ import SwiftData
 
 struct HomeView: View {
     @Environment(AppState.self) private var appState
-    @Query(sort: \CatchRecord.dateLogged, order: .reverse) private var catches: [CatchRecord]
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \CatchRecord.dateLogged, order: .reverse) private var allCatches: [CatchRecord]
+    private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     private var todayWeight: Double { catches.reduce(0) { $0 + $1.weight } }
     private var todayValue: Double { catches.reduce(0) { $0 + $1.weight * Double(FAIR_DB[$1.species]?.mid ?? 0) } }
@@ -25,7 +27,7 @@ struct HomeView: View {
                     }
                     Spacer()
                     HStack(spacing: 8) {
-                        Button { appState.isOffline.toggle() } label: {
+                        Button { Task { await SyncController.sync(appState: appState, context: modelContext) } } label: {
                             ZStack {
                                 Circle().fill(Color.pkSurface2).frame(width: 36, height: 36)
                                 Image(systemName: appState.isOffline ? "wifi.slash" : "wifi")
@@ -198,7 +200,7 @@ struct CatchCardView: View {
                         Text("\(record.weight.pkTrimmed) kg · \(record.ground)").font(.system(size: 13)).foregroundColor(.pkSub)
                         HStack(spacing: 4) {
                             Image(systemName: "clock").font(.system(size: 11)).foregroundColor(.pkSub)
-                            Text("Today · \(record.timeLabel)").font(.system(size: 12)).foregroundColor(.pkSub)
+                            Text(record.loggedLabel).font(.system(size: 12)).foregroundColor(.pkSub)
                         }
                     }
                     Spacer()
@@ -206,7 +208,7 @@ struct CatchCardView: View {
                 }
                 Divider().overlay(Color.pkBorder).padding(.vertical, 12)
                 HStack {
-                    Text("Fair Price").font(.system(size: 13)).foregroundColor(.pkSub)
+                    Text("Estimated Fair Price").font(.system(size: 13)).foregroundColor(.pkSub)
                     Spacer()
                     if let fair = record.fair {
                         Text("₱\(fair.low)–₱\(fair.high)/kg").font(.system(size: 14, weight: .semibold)).foregroundColor(.pkDark)

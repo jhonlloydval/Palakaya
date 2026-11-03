@@ -1,24 +1,29 @@
 import SwiftUI
+import SwiftData
 
 struct ReportsView: View {
-    private let topSpecies: [(String, Double)] = [("Galunggong", 68.4), ("Tulingan", 42.1), ("Tamban", 38.6)]
+    @Environment(AppState.self) private var appState
+    @Query private var allCatches: [CatchRecord]
+    private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
+
+    private var summary: ReportSummary { ReportsController.summary(for: catches) }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                LabelCaps(text: "September 2026").padding(.bottom, 12)
+                LabelCaps(text: summary.monthLabel).padding(.bottom, 12)
 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    reportBox("Total Catch", "184.7 kg")
-                    reportBox("Recorded Sales", "₱32,850")
-                    reportBox("Avg. Price Alignment", "97%")
-                    reportBox("Fishing Trips", "14")
+                    reportBox("Total Catch", "\(summary.totalKg.pkTrimmed) kg")
+                    reportBox("Recorded Sales", "₱\(summary.salesTotal.formatted())")
+                    reportBox("Avg. Price Alignment", summary.averageAlignment.map { "\($0)%" } ?? "—")
+                    reportBox("Fishing Days", "\(summary.fishingDays)")
                 }
                 .padding(.bottom, 16)
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Catch Weight Over Time").font(.system(size: 14, weight: .semibold))
-                    SparklineChart(data: [22, 30, 18, 35, 28, 40, 32], color: .pkAqua)
+                    Text("Catch Weight, Last 7 Days").font(.system(size: 14, weight: .semibold))
+                    SparklineChart(data: summary.dailyKg.map { Int($0.rounded()) }, color: .pkAqua)
                 }
                 .padding(16)
                 .background(Color.pkSurface).overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.pkBorder))
@@ -26,19 +31,29 @@ struct ReportsView: View {
                 .padding(.bottom, 16)
 
                 Text("Top Species").font(.system(size: 14, weight: .semibold)).padding(.bottom, 8)
-                ForEach(topSpecies, id: \.0) { name, kg in
+                if summary.topSpecies.isEmpty {
+                    Text("Log a catch this month to see your top species.")
+                        .font(.system(size: 13)).foregroundColor(.pkSub).padding(.vertical, 8)
+                }
+                ForEach(summary.topSpecies, id: \.name) { item in
                     HStack {
-                        Text(name).font(.system(size: 14))
+                        Text(item.name).font(.system(size: 14))
                         Spacer()
-                        Text("\(String(format: "%.1f", kg)) kg").font(.system(size: 13.5, weight: .semibold))
+                        Text("\(item.kg.pkTrimmed) kg").font(.system(size: 13.5, weight: .semibold))
                     }
                     .padding(.vertical, 8)
                     Divider().overlay(Color.pkBorder)
                 }
 
-                HStack(spacing: 12) {
-                    GhostButton(title: "Download", systemImage: "arrow.down.circle") {}
-                    GhostButton(title: "Share", systemImage: "square.and.arrow.up") {}
+                ShareLink(item: summary.shareText) {
+                    Label("Share Report", systemImage: "square.and.arrow.up")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .frame(minHeight: 52)
+                        .background(Color.pkSurface)
+                        .foregroundColor(.pkDark)
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.pkBorder))
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
                 .padding(.top, 20)
             }

@@ -19,9 +19,15 @@ struct SaleRecordedView: View {
 
                 VStack(spacing: 8) {
                     Text("Price Alignment").font(.system(size: 13)).foregroundColor(.pkSub)
-                    Text("\(r.alignment)%").font(.system(size: 22, weight: .bold)).foregroundColor(.pkDark)
-                    Text("Your selling price was about \(abs(r.alignment - 100))% \(r.alignment >= 100 ? "above" : "below") the regional benchmark midpoint.")
-                        .font(.system(size: 12.5)).foregroundColor(.pkText).multilineTextAlignment(.center).lineSpacing(3)
+                    if let alignment = r.alignment {
+                        Text("\(alignment)%").font(.system(size: 22, weight: .bold)).foregroundColor(.pkDark)
+                        Text("Your selling price was about \(abs(alignment - 100))% \(alignment >= 100 ? "above" : "below") the regional benchmark midpoint.")
+                            .font(.system(size: 12.5)).foregroundColor(.pkText).multilineTextAlignment(.center).lineSpacing(3)
+                    } else {
+                        Text("No benchmark yet").font(.system(size: 18, weight: .bold)).foregroundColor(.pkDark)
+                        Text("We don't have a fair-price estimate for \(r.species) yet, so this sale could not be compared.")
+                            .font(.system(size: 12.5)).foregroundColor(.pkText).multilineTextAlignment(.center).lineSpacing(3)
+                    }
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity)

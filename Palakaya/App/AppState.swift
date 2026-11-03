@@ -20,11 +20,12 @@ enum Route: Hashable {
     case saleRecorded
     case priceExplorer
     case reports
+    case profileInfo(ProfileSection)
 }
 
 struct SaleResult {
     var amount: Int
-    var alignment: Int
+    var alignment: Int?
     var buyerName: String
     var species: String
 }
@@ -47,8 +48,8 @@ final class AppState {
     var currentUserMobile: String = ""
 
     // Login form
-    var loginMobile: String = "0917 234 5678"
-    var loginPassword: String = "password"
+    var loginMobile: String = ""
+    var loginPassword: String = ""
     var loginError: String?
 
     // Register form
@@ -64,6 +65,7 @@ final class AppState {
     // Misc UI
     var isOffline = false
     var showNotifs = false
+    var errorMessage: String?
     var historyFilter = "All"
 
     // Log Catch flow
@@ -73,6 +75,7 @@ final class AppState {
     var lcWeight: String = ""
     var lcGround: String = "Sabang Fishing Ground"
     var lcPhoto = false
+    var lcDate = Date()
 
     // Active records / flows
     var activeCatchID: UUID?
@@ -84,6 +87,9 @@ final class AppState {
     var selectedBuyer: Buyer?
     var saleResult: SaleResult?
     var priceSel: String = "Galunggong"
+    var marketListings: [OtherListing] = []
+    var marketIsSample = true
+    var marketSearch = ""
 
     // Advisor
     var advisorSuggestionsUsed: Set<Int> = []
@@ -94,6 +100,7 @@ final class AppState {
         lcWeight = ""
         lcGround = "Sabang Fishing Ground"
         lcPhoto = false
+        lcDate = Date()
     }
 
     func openLogCatch() {
@@ -107,6 +114,7 @@ final class AppState {
     }
 
     func logout() {
+        SupabaseClient.shared.signOut()
         phase = .onboarding
         obStep = 0
         tab = .home

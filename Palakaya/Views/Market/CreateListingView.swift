@@ -33,7 +33,8 @@ struct CreateListingView: View {
                     .pkField("Selected Catch")
 
                     if let fair {
-                        Text("Fair price range today: ₱\(fair.low)–₱\(fair.high)/kg")
+                        Text(fair.saleCount.map { "Fair price from \($0) recent sales: ₱\(fair.low)–₱\(fair.high)/kg" }
+                             ?? "Estimated fair price (regional average): ₱\(fair.low)–₱\(fair.high)/kg")
                             .font(.system(size: 13)).foregroundColor(.pkSub).padding(.bottom, 16)
                     }
 
@@ -66,11 +67,13 @@ struct CreateListingView: View {
                     PKTextField(placeholder: "e.g. fresh catch, iced", text: $appState.listingNotes).pkField("Notes (optional)")
 
                     PrimaryButton(title: "Publish Listing", isDisabled: price <= 0) {
-                        c.status = .listed
-                        c.price = price
-                        c.buyersInterested = 2
-                        try? modelContext.save()
-                        appState.path.append(Route.listingDetails(c.id))
+                        do {
+                            try CatchController(context: modelContext).publishListing(c, pricePerKg: price)
+                            Task { await SyncController.sync(appState: appState, context: modelContext) }
+                            appState.path.append(Route.listingDetails(c.id))
+                        } catch {
+                            appState.errorMessage = "Your listing could not be published. Please try again."
+                        }
                     }
                 }
                 .padding(.horizontal, 20).padding(.bottom, 28)

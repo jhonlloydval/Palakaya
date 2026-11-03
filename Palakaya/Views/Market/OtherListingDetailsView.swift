@@ -2,8 +2,8 @@ import SwiftUI
 
 struct OtherListingDetailsView: View {
     var itemID: String
-    @Environment(\.dismiss) private var dismiss
-    private var item: OtherListing? { OTHER_LISTINGS.first { $0.id == itemID } }
+    @Environment(AppState.self) private var appState
+    private var item: OtherListing? { appState.marketListings.first { $0.id == itemID } }
 
     var body: some View {
         if let item {
@@ -34,13 +34,16 @@ struct OtherListingDetailsView: View {
                                 Text(item.seller).font(.system(size: 14, weight: .semibold))
                                 HStack(spacing: 4) {
                                     Image(systemName: "mappin.circle.fill").font(.system(size: 11)).foregroundColor(.pkSub)
-                                    Text("\(item.site) · \(item.distance)").font(.system(size: 12)).foregroundColor(.pkSub)
+                                    Text([item.site, item.distance].compactMap { $0 }.joined(separator: " · "))
+                                        .font(.system(size: 12)).foregroundColor(.pkSub)
                                 }
                             }
                             Spacer()
-                            HStack(spacing: 3) {
-                                Image(systemName: "star.fill").font(.system(size: 13)).foregroundColor(.pkWarning)
-                                Text(String(format: "%.1f", item.rating)).font(.system(size: 13, weight: .semibold))
+                            if let rating = item.rating {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "star.fill").font(.system(size: 13)).foregroundColor(.pkWarning)
+                                    Text(String(format: "%.1f", rating)).font(.system(size: 13, weight: .semibold))
+                                }
                             }
                         }
                     }
@@ -61,14 +64,35 @@ struct OtherListingDetailsView: View {
                         .padding(.bottom, 24)
                     }
 
-                    PrimaryButton(title: "Contact Fisher") { dismiss() }
-                    GhostButton(title: "Save Listing") { dismiss() }.padding(.top, 12)
+                    if let mobile = item.contactMobile, let call = URL(string: "tel:\(mobile)"),
+                       let text = URL(string: "sms:\(mobile)") {
+                        HStack(spacing: 12) {
+                            contactLink("Call", "phone.fill", call)
+                            contactLink("Text", "message.fill", text)
+                        }
+                        InfoBox(text: "Agree on price, payment and pickup directly with the fisher. Palakaya does not handle payments.")
+                            .padding(.top, 12)
+                    } else {
+                        InfoBox(text: "Sample listing: contact details appear on real listings from other fishers.")
+                    }
                 }
                 .padding(.horizontal, 20).padding(.bottom, 28)
             }
             .background(Color.pkBg)
             .navigationTitle(item.species)
             .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private func contactLink(_ title: String, _ icon: String, _ url: URL) -> some View {
+        Link(destination: url) {
+            Label(title, systemImage: icon)
+                .fontWeight(.semibold)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 52)
+                .background(Color.pkDark)
+                .foregroundColor(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
     }
 }

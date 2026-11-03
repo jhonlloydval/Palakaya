@@ -3,7 +3,8 @@ import SwiftData
 
 struct MarketView: View {
     @Environment(AppState.self) private var appState
-    @Query private var catches: [CatchRecord]
+    @Query private var allCatches: [CatchRecord]
+    private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     private var mine: [CatchRecord] { catches.filter { $0.status == .listed } }
 
@@ -15,24 +16,15 @@ struct MarketView: View {
 
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundColor(.pkSub)
-                    Text("Search catch or buyer").foregroundColor(.pkSub).font(.system(size: 14))
-                    Spacer()
+                    TextField("Search fish or seller", text: $appState.marketSearch)
+                        .font(.system(size: 16))
+                        .autocorrectionDisabled()
                 }
                 .padding(.horizontal, 14).padding(.vertical, 11)
                 .background(Color.pkSurface)
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.pkBorder))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.bottom, 12)
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        chip("Nearby", "slider.horizontal.3")
-                        chip("Species")
-                        chip("Price")
-                        chip("Newest")
-                    }
-                }
-                .padding(.bottom, 8)
 
                 SectionHeading(title: "Your Listings")
                 if mine.isEmpty {
@@ -48,8 +40,15 @@ struct MarketView: View {
                     }
                 }
 
-                SectionHeading(title: "Available Near You")
-                ForEach(OTHER_LISTINGS) { item in
+                SectionHeading(title: appState.marketIsSample ? "Sample Listings" : "Available From Other Fishers")
+                if appState.marketIsSample {
+                    InfoBox(text: "These are sample listings. Sign in with cloud sync on to see real catches for sale.")
+                        .padding(.bottom, 12)
+                } else if others.isEmpty {
+                    Text(appState.marketSearch.isEmpty ? "No other catches for sale right now. Pull down to refresh." : "No listings match your search.")
+                        .font(.system(size: 13)).foregroundColor(.pkSub).padding(.vertical, 8)
+                }
+                ForEach(others) { item in
                     MarketCardView(species: item.species, weight: item.weight, price: item.price,
                                    mine: false, buyersInterested: 0,
                                    seller: item.seller, rating: item.rating, site: item.site, distance: item.distance, fresh: item.fresh) {
@@ -62,16 +61,16 @@ struct MarketView: View {
         }
         .background(Color.pkBg)
         .navigationBarHidden(true)
+        .task { await MarketController.refresh(appState: appState) }
+        .refreshable { await MarketController.refresh(appState: appState) }
     }
 
-    private func chip(_ text: String, _ icon: String? = nil) -> some View {
-        HStack(spacing: 4) {
-            if let icon { Image(systemName: icon).font(.system(size: 10)) }
-            Text(text).font(.system(size: 12.5, weight: .medium))
+    private var others: [OtherListing] {
+        let q = appState.marketSearch.trimmingCharacters(in: .whitespaces)
+        guard !q.isEmpty else { return appState.marketListings }
+        return appState.marketListings.filter {
+            $0.species.localizedCaseInsensitiveContains(q) || $0.seller.localizedCaseInsensitiveContains(q)
         }
-        .foregroundColor(.pkText)
-        .padding(.horizontal, 14).padding(.vertical, 7)
-        .overlay(Capsule().stroke(Color.pkBorder))
     }
 }
 
@@ -124,7 +123,7 @@ struct MarketCardView: View {
                     } else {
                         HStack(spacing: 4) {
                             Image(systemName: "mappin.circle.fill").font(.system(size: 12)).foregroundColor(.pkSub)
-                            Text("\(site ?? "") · \(distance ?? "")").font(.system(size: 12.5)).foregroundColor(.pkSub)
+                            Text([site, distance].compactMap { $0 }.joined(separator: " · ")).font(.system(size: 12.5)).foregroundColor(.pkSub)
                         }
                     }
                     Spacer()

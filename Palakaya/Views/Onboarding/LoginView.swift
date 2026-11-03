@@ -9,17 +9,12 @@ struct LoginView: View {
         @Bindable var appState = appState
         ScrollView {
             VStack(spacing: 0) {
-                VStack(spacing: 12) {
-                    Image("PalakayaAppIcon")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 64, height: 64)
-                    VStack(spacing: 2) {
-                        Text("PALAKAYA").font(.system(size: 22, weight: .bold)).tracking(0.6)
-                        Text("Catch. Connect. Get a Fair Price.").font(.system(size: 13)).foregroundColor(.pkSub)
-                    }
-                }
-                .padding(.bottom, 36)
+                Image("PalakayaLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 200)
+                    .accessibilityLabel("Palakaya. Catch. Connect. Get a Fair Price.")
+                    .padding(.bottom, 28)
 
                 PKTextField(placeholder: "09XX XXX XXXX", text: $appState.loginMobile, keyboard: .phonePad)
                     .pkField("Mobile Number")
@@ -57,19 +52,17 @@ struct LoginView: View {
     }
 
     private func doLogin() {
-        let mobile = appState.loginMobile
-        let password = appState.loginPassword
-        let descriptor = FetchDescriptor<UserAccount>(predicate: #Predicate { $0.mobile == mobile })
-        guard let user = (try? modelContext.fetch(descriptor))?.first else {
-            appState.loginError = "No account found for that mobile number."
-            return
+        do {
+            let user = try AuthController(context: modelContext)
+                .login(mobile: appState.loginMobile, password: appState.loginPassword)
+            appState.loginError = nil
+            appState.applyUser(user)
+            appState.phase = .main
+            let password = appState.loginPassword
+            appState.loginPassword = ""
+            Task { await SyncController.connectAndSync(user: user, password: password, appState: appState, context: modelContext) }
+        } catch {
+            appState.loginError = error.localizedDescription
         }
-        guard user.password == password else {
-            appState.loginError = "Incorrect password."
-            return
-        }
-        appState.loginError = nil
-        appState.applyUser(user)
-        appState.phase = .main
     }
 }
