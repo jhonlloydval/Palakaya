@@ -59,8 +59,8 @@ begin
     if tg_op = 'INSERT' then
         select owner_id, status into catch_owner, catch_status from public.catches where id = new.catch_id;
         if catch_owner is null then raise exception 'Listing not found'; end if;
-        if catch_status <> 'listed' then raise exception 'This catch is no longer for sale'; end if;
         if auth.role() = 'authenticated' then
+            if catch_status <> 'listed' then raise exception 'This catch is no longer for sale'; end if;
             select role = 'buyer' into is_buyer from public.profiles where id = auth.uid();
             if not coalesce(is_buyer, false) then raise exception 'Only buyer accounts can make offers'; end if;
             new.buyer_id := auth.uid();
