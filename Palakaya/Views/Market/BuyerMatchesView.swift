@@ -8,6 +8,7 @@ struct BuyerMatchesView: View {
     @Environment(AppState.self) private var appState
     @Query private var catches: [CatchRecord]
     @State private var busyOfferID: UUID?
+    @State private var showSampleInfo = false
     private var record: CatchRecord? { catches.first { $0.id == catchID } }
 
     private var realOffers: [Offer] { OfferController.pendingOffers(for: catchID, in: appState.myOffers) }
@@ -35,6 +36,11 @@ struct BuyerMatchesView: View {
             }
             .background(Color.pkBg)
             .navigationTitle("Buyer Matches")
+            .alert("Sample buyer", isPresented: $showSampleInfo) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("This is a sample buyer to show how matching works. When a real buyer sends an offer, you can call or text them from here.")
+            }
             .navigationBarTitleDisplayMode(.inline)
             .task { await OfferController.refresh(appState: appState) }
             .refreshable { await OfferController.refresh(appState: appState) }
@@ -94,11 +100,24 @@ struct BuyerMatchesView: View {
             }
             .padding(.bottom, 12)
 
+            if let offerID = b.offerID,
+               let mobile = appState.myOffers.first(where: { $0.id == offerID })?.buyerMobile, !mobile.isEmpty,
+               let call = URL(string: "tel:\(mobile)"), let text = URL(string: "sms:\(mobile)") {
+                HStack(spacing: 16) {
+                    Link(destination: call) { Label("Call", systemImage: "phone.fill") }
+                    Link(destination: text) { Label("Text", systemImage: "message.fill") }
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(.pkDark)
+                .frame(minHeight: 44)
+                .padding(.bottom, 4)
+            }
+
             HStack(spacing: 12) {
                 if let offerID = b.offerID {
                     GhostButton(title: busyOfferID == offerID ? "…" : "Decline") { decline(offerID) }
                 } else {
-                    GhostButton(title: "Contact") {}
+                    GhostButton(title: "Contact") { showSampleInfo = true }
                 }
                 PrimaryButton(title: "Accept") {
                     appState.selectedBuyer = b
