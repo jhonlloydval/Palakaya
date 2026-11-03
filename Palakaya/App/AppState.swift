@@ -20,6 +20,7 @@ enum Route: Hashable {
     case saleRecorded
     case priceExplorer
     case reports
+    case profileInfo(ProfileSection)
 }
 
 struct SaleResult {

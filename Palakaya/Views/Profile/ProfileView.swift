@@ -9,15 +9,15 @@ struct ProfileView: View {
     private var sales: Int { catches.filter { $0.status == .sold }.count }
 
     private let rows: [(String, String, Route?)] = [
-        ("person.fill", "Personal Information", nil),
-        ("water.waves", "Fisherfolk Details", nil),
-        ("mappin.circle.fill", "Landing Site", nil),
+        ("person.fill", "Personal Information", .profileInfo(.personal)),
+        ("water.waves", "Fisherfolk Details", .profileInfo(.fisherfolk)),
+        ("mappin.circle.fill", "Landing Site", .profileInfo(.landing)),
         ("star.fill", "Saved Buyers", nil),
         ("doc.text.fill", "Reports", .reports),
         ("wifi", "Connectivity & Offline Data", nil),
-        ("lock.fill", "Privacy", nil),
-        ("questionmark.circle.fill", "Help Center", nil),
-        ("info.circle.fill", "About Palakaya", nil),
+        ("lock.fill", "Privacy", .profileInfo(.privacy)),
+        ("questionmark.circle.fill", "Help Center", .profileInfo(.help)),
+        ("info.circle.fill", "About Palakaya", .profileInfo(.about)),
     ]
 
     var body: some View {

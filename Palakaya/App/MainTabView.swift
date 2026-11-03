@@ -51,6 +51,7 @@ struct MainTabView: View {
         case .saleRecorded: SaleRecordedView()
         case .priceExplorer: PriceExplorerView()
         case .reports: ReportsView()
+        case .profileInfo(let section): ProfileInfoView(section: section)
         }
     }
 }
