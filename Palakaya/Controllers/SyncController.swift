@@ -7,6 +7,8 @@ import SwiftData
 enum SyncController {
     static func connectAndSync(user: UserAccount, password: String, appState: AppState, context: ModelContext) async {
         guard AppConfig.isCloudEnabled else { return }
+        // Never reuse a cloud session left by another account on this phone.
+        SupabaseClient.shared.signOut()
         do {
             try await SyncService.connect(user: user, password: password)
             await sync(appState: appState, context: context)
