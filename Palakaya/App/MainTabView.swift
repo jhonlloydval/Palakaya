@@ -12,6 +12,10 @@ struct MainTabView: View {
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     CustomTabBar()
                 }
+                // Blurs content that scrolls up under the status bar.
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    Color.clear.frame(height: 0).background(.bar)
+                }
                 .navigationDestination(for: Route.self) { route in
                     destination(for: route)
                 }
