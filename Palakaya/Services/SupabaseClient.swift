@@ -206,7 +206,8 @@ final class SupabaseClient {
               let url = URL(string: path, relativeTo: base) else { throw CloudError.notConfigured }
         var req = URLRequest(url: url)
         req.httpMethod = method
-        req.timeoutInterval = 60
+        // The free AI Advisor can take close to a minute, so allow more time than usual.
+        req.timeoutInterval = path.hasPrefix("functions/") ? 90 : 60
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.setValue(key, forHTTPHeaderField: "apikey")
         if authorized {

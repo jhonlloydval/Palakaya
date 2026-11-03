@@ -33,7 +33,10 @@ struct AdvisorView: View {
                         if isThinking {
                             HStack(spacing: 8) {
                                 ProgressView()
-                                Text("Thinking…").font(.system(size: 13)).foregroundColor(.pkSub)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Thinking…").font(.system(size: 13)).foregroundColor(.pkSub)
+                                    Text("Answers can take up to a minute.").font(.system(size: 12)).foregroundColor(.pkSub)
+                                }
                             }
                             .padding(.horizontal, 16).padding(.vertical, 12)
                             .background(Color.pkSurface2)
@@ -76,6 +79,8 @@ struct AdvisorView: View {
                     TextField(appState.isBuyer ? "Ask about fish prices or buying…" : "Ask about your catch or fish prices…", text: $draft, axis: .vertical)
                         .font(.system(size: 16))
                         .lineLimit(1...4)
+                        // English autocorrect mangles Filipino and fish names ("tulingan" → "ruling an").
+                        .autocorrectionDisabled()
                         .padding(.horizontal, 14).padding(.vertical, 12)
                         .frame(minHeight: 48)
                         .background(Color.pkSurface)
