@@ -57,7 +57,7 @@ struct LoginView: View {
     }
 
     private func doLogin() {
-        let mobile = appState.loginMobile
+        let mobile = InputParsing.normalizedMobile(appState.loginMobile)
         let password = appState.loginPassword
         let descriptor = FetchDescriptor<UserAccount>(predicate: #Predicate { $0.mobile == mobile })
         guard let user = (try? modelContext.fetch(descriptor))?.first else {

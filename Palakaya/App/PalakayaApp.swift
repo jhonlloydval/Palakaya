@@ -33,7 +33,7 @@ struct PalakayaApp: App {
 
         let demoUser = UserAccount(
             fullName: "Mang Jose Dela Cruz",
-            mobile: "0917 234 5678",
+            mobile: "09172345678",
             password: "password",
             municipality: "Bauan",
             province: "Batangas, CALABARZON",

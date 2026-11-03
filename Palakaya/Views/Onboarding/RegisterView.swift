@@ -65,15 +65,19 @@ struct RegisterView: View {
             appState.registerError = "Please fill in your name, mobile number, and password."
             return
         }
-        let mobile = appState.regMobile
+        let mobile = InputParsing.normalizedMobile(appState.regMobile)
         let descriptor = FetchDescriptor<UserAccount>(predicate: #Predicate { $0.mobile == mobile })
+        guard InputParsing.isValidMobile(mobile) else {
+            appState.registerError = "Enter a valid 11-digit mobile number (09XX XXX XXXX)."
+            return
+        }
         if let existing = try? modelContext.fetch(descriptor), !existing.isEmpty {
             appState.registerError = "An account with that mobile number already exists."
             return
         }
         let user = UserAccount(
             fullName: appState.regName,
-            mobile: appState.regMobile,
+            mobile: mobile,
             password: appState.regPassword,
             municipality: appState.regMunicipality,
             province: appState.regProvince,
