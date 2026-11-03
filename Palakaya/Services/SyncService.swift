@@ -7,7 +7,7 @@ import SwiftData
 enum SyncService {
     private struct ProfileRow: Encodable {
         let id: String
-        let full_name, mobile, municipality, province, landing_site, fisherfolk_id: String
+        let full_name, mobile, municipality, province, landing_site, fisherfolk_id, role, business_name: String
     }
 
     private struct CatchRow: Codable {
@@ -35,7 +35,8 @@ enum SyncService {
         guard let id = client.userID else { throw CloudError.notSignedIn }
         try await client.upsert("profiles", rows: [ProfileRow(
             id: id, full_name: user.fullName, mobile: user.mobile, municipality: user.municipality,
-            province: user.province, landing_site: user.landingSite, fisherfolk_id: user.fisherfolkID)])
+            province: user.province, landing_site: user.landingSite, fisherfolk_id: user.fisherfolkID,
+            role: user.role, business_name: user.businessName)])
     }
 
     /// Downloads this account's catches so a reinstall or new phone gets them back.
