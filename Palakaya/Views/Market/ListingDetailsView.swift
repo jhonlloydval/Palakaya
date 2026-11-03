@@ -6,6 +6,9 @@ struct ListingDetailsView: View {
     @Environment(AppState.self) private var appState
     @Query private var catches: [CatchRecord]
     private var record: CatchRecord? { catches.first { $0.id == catchID } }
+    private var offerCount: Int {
+        OfferController.isAvailable ? OfferController.pendingOffers(for: catchID, in: appState.myOffers).count : BUYERS.count
+    }
 
     var body: some View {
         @Bindable var appState = appState
@@ -63,7 +66,7 @@ struct ListingDetailsView: View {
                         .padding(.bottom, 24)
                     }
 
-                    PrimaryButton(title: "\(c.buyersInterested ?? 2) Buyers Interested") {
+                    PrimaryButton(title: offerCount == 0 ? "View Offers" : "\(offerCount) \(offerCount == 1 ? "Offer" : "Offers") Waiting") {
                         appState.path.append(Route.buyerMatches(c.id))
                     }
                 }
