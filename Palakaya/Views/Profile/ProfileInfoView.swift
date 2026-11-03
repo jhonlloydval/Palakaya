@@ -578,6 +578,8 @@ private struct AboutSection: View {
             Text("Made by Jhon Lloyd Valencia").font(.system(size: 15, weight: .semibold)).foregroundColor(.pkText)
             Text("Lucena City, Quezon").font(.system(size: 13)).foregroundColor(.pkSub)
             Text("Version 2.0").font(.system(size: 13)).foregroundColor(.pkSub)
+            Text("Intro photos: Gerald Escamos, Hector John Periquin and Xavier Smet on Unsplash.")
+                .font(.system(size: 12)).foregroundColor(.pkSub).multilineTextAlignment(.center).padding(.top, 6)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 8)

@@ -14,8 +14,8 @@ let onboardingSlides: [OnboardingSlide] = [
                     sub: "Your own records and this week's local prices show you when and where to sell."),
 ]
 
-/// First-run story. Each step shows a real piece of the app (a catch, a buyer, a price trend)
-/// rising out of the sea, so the fisher sees what Palakaya does before signing up.
+/// First-run story. Each step is a photo of Filipino fishers at sea that fades into the night-sea navy,
+/// with one line of real app content (a catch, a buyer, a price trend) and the message on the faded part.
 struct OnboardingView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -26,22 +26,19 @@ struct OnboardingView: View {
         @Bindable var appState = appState
 
         ZStack {
-            VStack(spacing: 0) {
-                Spacer()
-                SeaWaves(animated: !reduceMotion).frame(height: 250)
+            Color.pkDeepSea.ignoresSafeArea()
+            TabView(selection: $appState.obStep) {
+                ForEach(onboardingSlides.indices, id: \.self) { i in
+                    OnboardingPage(index: i, isActive: appState.obStep == i, reduceMotion: reduceMotion)
+                        .tag(i)
+                }
             }
-            .background(Color.pkDeepSea)
+            .tabViewStyle(.page(indexDisplayMode: .never))
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 topBar
-                TabView(selection: $appState.obStep) {
-                    ForEach(onboardingSlides.indices, id: \.self) { i in
-                        OnboardingPage(index: i, isActive: appState.obStep == i, reduceMotion: reduceMotion)
-                            .tag(i)
-                    }
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
+                Spacer()
                 actions
             }
         }
@@ -63,9 +60,13 @@ struct OnboardingView: View {
             if !isLast {
                 Button("Skip") { withAnimation { appState.obStep = onboardingSlides.count - 1 } }
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 14).frame(minHeight: 36)
+                    .background(Color.black.opacity(0.25))
+                    .clipShape(Capsule())
             }
         }
+        .shadow(color: .black.opacity(0.3), radius: 6)
         .padding(.horizontal, 24)
         .frame(height: 52)
     }
@@ -104,133 +105,125 @@ private struct OnboardingPage: View {
     var index: Int
     var isActive: Bool
     var reduceMotion: Bool
-    @State private var risen = false
 
     var body: some View {
         let slide = onboardingSlides[index]
-        VStack(alignment: .leading, spacing: 0) {
-            Spacer(minLength: 8)
-            Group {
-                switch index {
-                case 0: CatchTicket()
-                case 1: BuyerMatchTicket()
-                default: PriceTrendTicket()
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .offset(y: risen ? 0 : 40)
-            .opacity(risen ? 1 : 0)
-            Spacer(minLength: 20)
+        GeometryReader { geo in
+            let photoHeight = geo.size.height * 0.78
+            ZStack(alignment: .top) {
+                Color.pkDeepSea
+                photo(width: geo.size.width, visibleHeight: photoHeight, screenHeight: geo.size.height)
+                // Darkens the top for the logo, and fades the photo into the sea colour where the text sits.
+                LinearGradient(colors: [.black.opacity(0.45), .clear], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 170)
+                LinearGradient(stops: [
+                    .init(color: .clear, location: 0.35),
+                    .init(color: Color.pkDeepSea.opacity(0.75), location: 0.7),
+                    .init(color: Color.pkDeepSea, location: 1),
+                ], startPoint: .top, endPoint: .bottom)
+                .frame(height: photoHeight)
 
-            Text(slide.headline)
-                .font(.system(size: 30, weight: .heavy))
-                .foregroundColor(.white)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.bottom, 10)
-            Text(slide.sub)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white.opacity(0.82))
-                .lineSpacing(3)
-                .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 0) {
+                    Spacer()
+                    // The first step is just the photo and the message.
+                    Group {
+                        switch index {
+                        case 0: EmptyView()
+                        case 1: BuyerHighlight()
+                        default: PriceHighlight()
+                        }
+                    }
+                    // The one entrance moment: the highlight rises into place when its step is shown.
+                    .offset(y: isActive || reduceMotion ? 0 : 24)
+                    .opacity(isActive ? 1 : 0)
+                    .animation(reduceMotion ? nil : .spring(response: 0.55, dampingFraction: 0.78).delay(0.1), value: isActive)
+                    .padding(.bottom, index == 0 ? 0 : 18)
+
+                    Text(slide.headline)
+                        .font(.system(size: 30, weight: .heavy))
+                        .foregroundColor(.white)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.bottom, 10)
+                    Text(slide.sub)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, geo.safeAreaInsets.bottom + 190)
+            }
         }
-        .padding(.horizontal, 24)
-        .padding(.bottom, 20)
-        .onAppear { rise() }
-        .onChange(of: isActive) { _, active in
-            if active { rise() } else if !reduceMotion { risen = false }
-        }
+        .ignoresSafeArea()
     }
 
-    /// The one entrance moment: the card surfaces from the waves when its step is shown.
-    private func rise() {
-        guard isActive else { return }
-        if reduceMotion { risen = true; return }
-        withAnimation(.spring(response: 0.55, dampingFraction: 0.78)) { risen = true }
+    /// Where the people are in each photo, as fractions of its width and height.
+    private static let focusX: [CGFloat] = [0.5, 0.4, 0.45]
+    private static let focus: [CGFloat] = [0.74, 0.45, 0.5]
+
+    /// Draws the photo larger than the space it shows and slides it so the fishers sit at about a third of the way down the
+    /// screen, above the highlight and the text.
+    private func photo(width: CGFloat, visibleHeight: CGFloat, screenHeight: CGFloat) -> some View {
+        let name = "OnboardingPhoto\(index + 1)"
+        let aspect = UIImage(named: name).map { $0.size.height / $0.size.width } ?? 1
+        let drawnHeight = max(visibleHeight * 1.25, width * aspect)
+        let drawnWidth = max(width, drawnHeight / aspect)
+        let wanted = screenHeight * 0.33 - Self.focus[index] * drawnHeight
+        let offset = min(0, max(visibleHeight - drawnHeight, wanted))
+        let offsetX = min(0, max(width - drawnWidth, width / 2 - Self.focusX[index] * drawnWidth))
+        return Image(name)
+            .resizable()
+            .frame(width: drawnWidth, height: drawnHeight)
+            .offset(x: offsetX, y: offset)
+            .frame(width: width, height: visibleHeight, alignment: .topLeading)
+            .clipped()
+            .accessibilityHidden(true)
     }
 }
 
-// MARK: - Step illustrations (built from the app's own screens and seed data)
+// MARK: - Step highlights (real app content, on see-through glass so the photo stays visible)
 
-private struct TicketCard<Content: View>: View {
-    var tilt: Double
+private struct GlassFact<Content: View>: View {
+    var icon: String
     @ViewBuilder var content: () -> Content
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) { content() }
-            .padding(20)
-            .frame(width: 290, alignment: .leading)
-            .background(Color.pkSurface)
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .shadow(color: .black.opacity(0.28), radius: 24, y: 14)
-            .rotationEffect(.degrees(tilt))
-    }
-}
-
-private struct CatchTicket: View {
-    var body: some View {
-        TicketCard(tilt: -3) {
-            HStack {
-                Text("Tulingan").font(.system(size: 22, weight: .heavy)).foregroundColor(.pkText)
-                Spacer()
-                Badge(tone: .success, text: "LISTED")
-            }
-            Text("18 kg from Batangas Bay, 6:05 AM")
-                .font(.system(size: 13, weight: .medium)).foregroundColor(.pkSub)
-                .padding(.bottom, 16)
-            Text("Fair price today").font(.system(size: 13, weight: .semibold)).foregroundColor(.pkSub)
-            Text("₱205 to ₱212 per kg").font(.system(size: 24, weight: .heavy)).foregroundColor(.pkDark)
-            Text("Worth about ₱3,750 in total")
-                .font(.system(size: 13, weight: .semibold)).foregroundColor(.pkSuccess)
-                .padding(.top, 4)
-        }
-        .accessibilityElement(children: .combine)
-    }
-}
-
-private struct BuyerMatchTicket: View {
-    var body: some View {
-        TicketCard(tilt: 2.5) {
-            Text("Offers on your Tulingan").font(.system(size: 13, weight: .semibold)).foregroundColor(.pkSub)
-                .padding(.bottom, 12)
-            buyer("Liza's Seafood Stall", "0.8 km away, offers ₱210/kg", best: true)
-            Divider().overlay(Color.pkBorder).padding(.vertical, 10)
-            buyer("Coastal Fresh Co-op", "2.1 km away, offers ₱206/kg", best: false)
-        }
-        .accessibilityElement(children: .combine)
-    }
-
-    private func buyer(_ name: String, _ detail: String, best: Bool) -> some View {
         HStack(spacing: 12) {
             ZStack {
-                Circle().fill(Color.pkSurface2).frame(width: 40, height: 40)
-                Image(systemName: "storefront.fill").foregroundColor(.pkDark)
+                Circle().fill(Color.white.opacity(0.18)).frame(width: 40, height: 40)
+                Image(systemName: icon).font(.system(size: 17, weight: .semibold)).foregroundColor(.white)
             }
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    Text(name).font(.system(size: 15, weight: .bold)).foregroundColor(.pkText)
-                    Image(systemName: "checkmark.seal.fill").font(.system(size: 12)).foregroundColor(.pkDark)
-                }
-                Text(detail).font(.system(size: 12.5, weight: .medium)).foregroundColor(best ? .pkSuccess : .pkSub)
+            VStack(alignment: .leading, spacing: 2) { content() }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 12)
+        .background(.ultraThinMaterial.opacity(0.7))
+        .environment(\.colorScheme, .dark)
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(Color.white.opacity(0.18)))
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct BuyerHighlight: View {
+    var body: some View {
+        GlassFact(icon: "storefront.fill") {
+            HStack(spacing: 4) {
+                Text("Liza's Seafood Stall").font(.system(size: 16, weight: .bold)).foregroundColor(.white)
+                Image(systemName: "checkmark.seal.fill").font(.system(size: 13)).foregroundColor(.pkAqua)
             }
+            Text("Offers ₱210/kg for your Tulingan · 0.8 km away")
+                .font(.system(size: 13.5, weight: .medium)).foregroundColor(.white.opacity(0.85))
         }
     }
 }
 
-private struct PriceTrendTicket: View {
+private struct PriceHighlight: View {
     var body: some View {
-        TicketCard(tilt: -2) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Galunggong").font(.system(size: 15, weight: .bold)).foregroundColor(.pkText)
-                Spacer()
-                Text("up 4.2% this week").font(.system(size: 12.5, weight: .semibold)).foregroundColor(.pkSuccess)
-            }
-            Text("₱192/kg").font(.system(size: 30, weight: .heavy)).foregroundColor(.pkDark)
-                .padding(.bottom, 6)
-            SparklineChart(data: [176, 181, 179, 184, 186, 185, 192], color: .pkDark)
-            Text("Best day to sell: Saturday morning")
-                .font(.system(size: 13, weight: .semibold)).foregroundColor(.pkSub)
-                .padding(.top, 8)
+        GlassFact(icon: "chart.line.uptrend.xyaxis") {
+            Text("Galunggong · ₱192/kg").font(.system(size: 16, weight: .bold)).foregroundColor(.white)
+            Text("Up 4.2% this week · best to sell Saturday morning")
+                .font(.system(size: 13.5, weight: .medium)).foregroundColor(.white.opacity(0.85))
         }
-        .accessibilityElement(children: .combine)
     }
 }
 
@@ -250,27 +243,6 @@ private struct StepMarker: View {
         .animation(.easeInOut(duration: 0.25), value: current)
         .accessibilityElement()
         .accessibilityLabel("Step \(current + 1) of \(count)")
-    }
-}
-
-/// Three layers of swell in the logo's teal and blues. They drift slowly unless Reduce Motion is on.
-private struct SeaWaves: View {
-    var animated: Bool
-
-    var body: some View {
-        TimelineView(.animation(paused: !animated)) { context in
-            let t = animated ? context.date.timeIntervalSinceReferenceDate : 0
-            ZStack(alignment: .bottom) {
-                Wave(phase: t * 0.35, amplitude: 14, baseline: 0.30)
-                    .fill(Color.pkAqua.opacity(0.22))
-                Wave(phase: t * 0.5 + 1.8, amplitude: 11, baseline: 0.48)
-                    .fill(Color(hex: "0261A7").opacity(0.55))
-                Wave(phase: t * 0.7 + 3.1, amplitude: 9, baseline: 0.66)
-                    .fill(Color(hex: "01447E"))
-            }
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
     }
 }
 
