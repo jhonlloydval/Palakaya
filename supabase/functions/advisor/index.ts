@@ -46,7 +46,7 @@ async function callGemini(model: string, messages: Message[]): Promise<Response>
       })),
       generationConfig: { maxOutputTokens: 1024 },
     }),
-    signal: AbortSignal.timeout(20_000),
+    signal: AbortSignal.timeout(45_000),
   });
 }
 
@@ -58,7 +58,8 @@ async function askGemini(messages: Message[]): Promise<string> {
     let res: Response;
     try {
       res = await callGemini(model, messages);
-    } catch {
+    } catch (error) {
+      console.error(`Gemini ${model} request failed:`, error);
       lastStatus = 504; // timed out or network error: try the next model
       continue;
     }
@@ -68,6 +69,7 @@ async function askGemini(messages: Message[]): Promise<string> {
       return parts.map((p: { text?: string }) => p.text ?? "").join("").trim();
     }
     lastStatus = res.status;
+    console.error(`Gemini ${model} returned ${res.status}:`, (await res.text()).slice(0, 500));
     if (res.status !== 429 && res.status < 500) break; // bad request or key: another model will not help
   }
   if (lastStatus === 429) throw new AdvisorError(429, "Free AI limit reached, try again in a minute");
