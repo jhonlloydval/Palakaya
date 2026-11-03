@@ -24,7 +24,7 @@ enum Route: Hashable {
 
 struct SaleResult {
     var amount: Int
-    var alignment: Int
+    var alignment: Int?
     var buyerName: String
     var species: String
 }

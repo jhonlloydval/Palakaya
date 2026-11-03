@@ -37,9 +37,8 @@ struct RecordSaleView: View {
                         .padding(.bottom, 24)
 
                     PrimaryButton(title: "Complete Sale") {
-                        guard let fair = c.fair else { return }
                         let amount = Int(c.weight * Double(b.offer))
-                        let alignment = Int((Double(b.offer) / Double(fair.mid)) * 100)
+                        let alignment = c.fair.map { Int((Double(b.offer) / Double($0.mid)) * 100) }
                         c.status = .sold
                         c.price = Double(b.offer)
                         c.saleAmount = Double(amount)
