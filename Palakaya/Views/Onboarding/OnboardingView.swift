@@ -8,10 +8,14 @@ struct OnboardingSlide {
 let onboardingSlides: [OnboardingSlide] = [
     OnboardingSlide(headline: "Know what your catch is worth",
                     sub: "Log each catch at the landing site and see a fair price before anyone names theirs."),
+    OnboardingSlide(headline: "Check the sea before you go",
+                    sub: "Every morning, see the waves, wind and rain for your town, with a simple go, careful or stay-ashore guide."),
     OnboardingSlide(headline: "Sell straight to buyers near you",
                     sub: "List your catch and get offers from verified stalls, carinderias and cooperatives."),
+    OnboardingSlide(headline: "Ask in English or Filipino",
+                    sub: "The Advisor answers questions about prices, fishing grounds and selling, using your own records."),
     OnboardingSlide(headline: "Catch smarter, sell fairer",
-                    sub: "Your own records and this week's local prices show you when and where to sell."),
+                    sub: "Your records and this week's local prices show you when and where to sell. It all works even with no signal."),
 ]
 
 /// First-run story. Each step is a photo of Filipino fishers at sea that fades into the night-sea navy,
@@ -129,7 +133,9 @@ private struct OnboardingPage: View {
                     Group {
                         switch index {
                         case 0: EmptyView()
-                        case 1: BuyerHighlight()
+                        case 1: SeaHighlight()
+                        case 2: BuyerHighlight()
+                        case 3: AdvisorHighlight()
                         default: PriceHighlight()
                         }
                     }
@@ -158,8 +164,8 @@ private struct OnboardingPage: View {
     }
 
     /// Where the people are in each photo, as fractions of its width and height.
-    private static let focusX: [CGFloat] = [0.5, 0.4, 0.45]
-    private static let focus: [CGFloat] = [0.74, 0.45, 0.5]
+    private static let focusX: [CGFloat] = [0.5, 0.5, 0.4, 0.5, 0.45]
+    private static let focus: [CGFloat] = [0.74, 0.5, 0.45, 0.5, 0.5]
 
     /// Draws the photo larger than the space it shows and slides it so the fishers sit at about a third of the way down the
     /// screen, above the highlight and the text.
@@ -201,6 +207,30 @@ private struct GlassFact<Content: View>: View {
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(Color.white.opacity(0.18)))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .accessibilityElement(children: .combine)
+    }
+}
+
+private struct SeaHighlight: View {
+    var body: some View {
+        GlassFact(icon: "water.waves") {
+            HStack(spacing: 6) {
+                Text("Sea today").font(.system(size: 16, weight: .bold)).foregroundColor(.white)
+                Text("Good to go").font(.system(size: 12, weight: .bold)).foregroundColor(Color(hex: "10272D"))
+                    .padding(.horizontal, 8).padding(.vertical, 3).background(Color.white).clipShape(Capsule())
+            }
+            Text("Waves 0.5 m · wind 12 km/h · rain 20%")
+                .font(.system(size: 13.5, weight: .medium)).foregroundColor(.white.opacity(0.85))
+        }
+    }
+}
+
+private struct AdvisorHighlight: View {
+    var body: some View {
+        GlassFact(icon: "sparkles") {
+            Text("“Magkano ang galunggong ngayon?”").font(.system(size: 16, weight: .bold)).foregroundColor(.white)
+            Text("₱186–₱195 per kg near you, up 6% this week")
+                .font(.system(size: 13.5, weight: .medium)).foregroundColor(.white.opacity(0.85))
+        }
     }
 }
 
