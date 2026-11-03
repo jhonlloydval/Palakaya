@@ -456,7 +456,7 @@ private struct DemoSection: View {
                 .font(.system(size: 13)).foregroundColor(.pkSub)
         }
         Panel(title: "Good to show") {
-            Fact(icon: "moon.fill", text: "Dark Mode follows the phone. Switch it in Control Center to show both looks.")
+            Fact(icon: "moon.fill", text: "Use Appearance on the Profile page to switch between Light and Dark Mode.")
             Fact(icon: "wifi.slash", text: "Turn on Airplane Mode and log a catch: it saves, then uploads when you're back online.")
             Fact(icon: "sparkles", text: "Ask the Advisor something off-topic to show it stays on fishing.")
         }

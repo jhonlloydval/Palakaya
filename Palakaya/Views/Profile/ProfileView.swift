@@ -4,6 +4,7 @@ import SwiftData
 struct ProfileView: View {
     @Environment(AppState.self) private var appState
     @Query private var allCatches: [CatchRecord]
+    @AppStorage("appearance") private var appearance = "system"
     private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     private var totalKg: Double { catches.reduce(0) { $0 + $1.weight } }
@@ -84,6 +85,23 @@ struct ProfileView: View {
                 .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.pkBorder))
                 .clipShape(RoundedRectangle(cornerRadius: 18))
                 .padding(.bottom, 20)
+
+                HStack(spacing: 12) {
+                    Image(systemName: "circle.lefthalf.filled").font(.system(size: 16)).foregroundColor(.pkDark).frame(width: 20)
+                    Text("Appearance").font(.system(size: 14, weight: .medium)).foregroundColor(.pkText)
+                    Spacer()
+                    Picker("Appearance", selection: $appearance) {
+                        Text("Auto").tag("system")
+                        Text("Light").tag("light")
+                        Text("Dark").tag("dark")
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 190)
+                }
+                .padding(.horizontal, 16).padding(.vertical, 12)
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.pkBorder))
+                .clipShape(RoundedRectangle(cornerRadius: 18))
+                .padding(.bottom, 16)
 
                 VStack(spacing: 0) {
                     ForEach(Array(rows.enumerated()), id: \.offset) { i, row in

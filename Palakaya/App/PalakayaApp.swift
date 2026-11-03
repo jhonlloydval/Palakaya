@@ -5,6 +5,8 @@ import SwiftData
 struct PalakayaApp: App {
     let container: ModelContainer
     @State private var appState = AppState()
+    /// "system", "light" or "dark", chosen in Profile.
+    @AppStorage("appearance") private var appearance = "system"
 
     init() {
         do {
@@ -21,6 +23,7 @@ struct PalakayaApp: App {
             RootView()
                 .environment(appState)
                 .modelContainer(container)
+                .preferredColorScheme(appearance == "light" ? .light : appearance == "dark" ? .dark : nil)
         }
     }
 
