@@ -73,13 +73,6 @@ struct NotificationItem: Identifiable {
     var time: String
 }
 
-let NOTIFS: [NotificationItem] = [
-    NotificationItem(id: "n1", kind: "PRICE UPDATE", text: "Galunggong prices increased 6% this week.", time: "1h ago"),
-    NotificationItem(id: "n2", kind: "BUYER INTEREST", text: "Liza's Seafood Stall is interested in your Tulingan listing.", time: "3h ago"),
-    NotificationItem(id: "n3", kind: "SALE", text: "Your Tamban sale has been recorded.", time: "5h ago"),
-    NotificationItem(id: "n4", kind: "SYNC", text: "3 offline catch records were successfully synced.", time: "Yesterday"),
-]
-
 let ADVISOR_SUGGESTIONS = [
     "Magkano ang fair price ng Galunggong ngayon?",
     "Aling fishing ground ang madalas kong magandang huli?",
