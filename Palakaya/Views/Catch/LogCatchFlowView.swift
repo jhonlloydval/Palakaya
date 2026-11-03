@@ -120,7 +120,7 @@ struct LogCatchFlowView: View {
                 .buttonStyle(.plain)
                 .pkField("Photo of Catch (optional)")
 
-                PrimaryButton(title: "Review Catch", isDisabled: (Double(appState.lcWeight) ?? 0) <= 0) {
+                PrimaryButton(title: "Review Catch", isDisabled: InputParsing.weightKg(appState.lcWeight) == nil) {
                     appState.lcStep = 3
                 }
                 .padding(.top, 4)
@@ -129,7 +129,7 @@ struct LogCatchFlowView: View {
     }
 
     private var reviewStep: some View {
-        let weight = Double(appState.lcWeight) ?? 0
+        let weight = InputParsing.weightKg(appState.lcWeight) ?? 0
         let fair = appState.lcSpecies.flatMap { FAIR_DB[$0] }
         return ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -169,7 +169,7 @@ struct LogCatchFlowView: View {
 
     private func save(andList: Bool) {
         guard let species = appState.lcSpecies else { return }
-        let weight = Double(appState.lcWeight) ?? 0
+        let weight = InputParsing.weightKg(appState.lcWeight) ?? 0
         let record = CatchRecord(species: species, weight: weight, ground: appState.lcGround, timeLabel: "6:45 AM")
         modelContext.insert(record)
         try? modelContext.save()
