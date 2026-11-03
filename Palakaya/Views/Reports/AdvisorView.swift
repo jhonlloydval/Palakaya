@@ -18,7 +18,7 @@ struct AdvisorView: View {
                     Image(systemName: "sparkles").foregroundColor(.pkDark)
                     Text("Palakaya Advisor").font(.system(size: 20, weight: .bold))
                 }
-                Text("Catch and market guidance based on your records.").font(.system(size: 13)).foregroundColor(.pkSub)
+                Text("Answers about your catch, prices and selling. Fishing topics only.").font(.system(size: 13)).foregroundColor(.pkSub)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
@@ -33,7 +33,7 @@ struct AdvisorView: View {
                         if isThinking {
                             HStack(spacing: 8) {
                                 ProgressView()
-                                Text("Nag-iisip…").font(.system(size: 13)).foregroundColor(.pkSub)
+                                Text("Thinking…").font(.system(size: 13)).foregroundColor(.pkSub)
                             }
                             .padding(.horizontal, 16).padding(.vertical, 12)
                             .background(Color.pkSurface2)
@@ -73,7 +73,7 @@ struct AdvisorView: View {
                 }
 
                 HStack(spacing: 8) {
-                    TextField("Magtanong tungkol sa huli o presyo…", text: $draft, axis: .vertical)
+                    TextField("Ask about your catch or fish prices…", text: $draft, axis: .vertical)
                         .font(.system(size: 16))
                         .lineLimit(1...4)
                         .padding(.horizontal, 14).padding(.vertical, 12)

@@ -88,7 +88,7 @@ struct PalakayaApp: App {
             context.insert(c)
         }
 
-        let welcome = AdvisorMessageRecord(isUser: false, text: "Kamusta, Mang Jose. Ano ang gusto mong malaman?", ownerID: demoUser.id)
+        let welcome = AdvisorMessageRecord(isUser: false, text: "Hi Jose! Ask me about your catch, fish prices or selling. You can write in English or Filipino.", ownerID: demoUser.id)
         context.insert(welcome)
 
         try? context.save()

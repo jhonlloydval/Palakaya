@@ -89,8 +89,8 @@ struct NotificationItem: Identifiable {
 }
 
 let ADVISOR_SUGGESTIONS = [
-    "Magkano ang fair price ng Galunggong ngayon?",
-    "Aling fishing ground ang madalas kong magandang huli?",
-    "Bakit mababa ang presyo ng huling benta ko?",
-    "Anong isda ang mataas ang presyo ngayong linggo?",
+    "What is the fair price of Galunggong today?",
+    "Which fishing ground gives me my best catch?",
+    "Was my last sale priced fairly?",
+    "Which fish has the highest price this week?",
 ]
