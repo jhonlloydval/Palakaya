@@ -4,6 +4,7 @@ enum ProfileSection: String, Hashable {
     case personal = "Personal Information"
     case fisherfolk = "Fisherfolk Details"
     case landing = "Landing Site"
+    case connectivity = "Connectivity & Offline Data"
     case privacy = "Privacy"
     case help = "Help Center"
     case about = "About Palakaya"
@@ -29,6 +30,9 @@ struct ProfileInfoView: View {
                 case .landing:
                     row("Home port / landing site", appState.currentUserLandingSite)
                     row("Province / Region", appState.currentUserProvince)
+                case .connectivity:
+                    InfoBox(text: "Your catches are saved on this phone, so you can log them even without a signal.")
+                    InfoBox(text: "Cloud sync across devices is coming in the final version.")
                 case .privacy:
                     InfoBox(text: "Your personal catch records stay private. Only anonymized, grouped regional data is shared with BFAR and local government fisheries offices.")
                     InfoBox(text: "We collect only what the app needs: your name, mobile number, location and catch records.")
