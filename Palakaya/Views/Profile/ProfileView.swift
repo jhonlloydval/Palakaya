@@ -48,7 +48,7 @@ struct ProfileView: View {
                     HStack(spacing: 4) {
                         Text(appState.currentUserName.isEmpty ? "Fisher" : appState.currentUserName)
                             .font(.system(size: 18, weight: .bold))
-                        if !appState.isBuyer || appState.currentUserVerified {
+                        if appState.isBuyer ? appState.currentUserVerified : !appState.currentUserFID.isEmpty {
                             Image(systemName: "checkmark.seal.fill").font(.system(size: 14)).foregroundColor(.pkDark)
                         }
                     }
@@ -76,7 +76,7 @@ struct ProfileView: View {
                         Divider().overlay(Color.pkBorder)
                         StatBox(label: "Purchases", value: "\(buyerOffers.filter { $0.status == .paid }.count)")
                     } else {
-                        StatBox(label: "Caught", value: "\(Int(totalKg))kg")
+                        StatBox(label: "Caught", value: "\(totalKg.pkTrimmed) kg")
                         Divider().overlay(Color.pkBorder)
                         StatBox(label: "Sales", value: "\(sales)")
                     }
@@ -89,6 +89,7 @@ struct ProfileView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "circle.lefthalf.filled").font(.system(size: 16)).foregroundColor(.pkDark).frame(width: 20)
                     Text("Appearance").font(.system(size: 14, weight: .medium)).foregroundColor(.pkText)
+                        .lineLimit(1).fixedSize()
                     Spacer()
                     Picker("Appearance", selection: $appearance) {
                         Text("Auto").tag("system")
@@ -96,7 +97,7 @@ struct ProfileView: View {
                         Text("Dark").tag("dark")
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 190)
+                    .frame(maxWidth: 180)
                 }
                 .padding(.horizontal, 16).padding(.vertical, 12)
                 .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.pkBorder))
