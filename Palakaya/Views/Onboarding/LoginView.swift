@@ -5,6 +5,7 @@ struct LoginView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @State private var isLoggingIn = false
+    @State private var showForgot = false
 
     var body: some View {
         @Bindable var appState = appState
@@ -30,7 +31,7 @@ struct LoginView: View {
 
                 HStack {
                     Spacer()
-                    Button("Forgot Password?") {}
+                    Button("Forgot Password?") { showForgot = true }
                         .font(.system(size: 13, weight: .medium)).foregroundColor(.pkDark)
                 }
                 .padding(.bottom, 22)
@@ -50,6 +51,11 @@ struct LoginView: View {
         }
         .background(Color.pkBg)
         .scrollDismissesKeyboard(.interactively)
+        .alert("Forgot your password?", isPresented: $showForgot) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Resetting by text message is coming soon. For now, ask the Palakaya team to reset it, using the mobile number you signed up with. If you're still logged in on another phone, you can change it there in Profile → Personal Information.")
+        }
     }
 
     private func doLogin() {
