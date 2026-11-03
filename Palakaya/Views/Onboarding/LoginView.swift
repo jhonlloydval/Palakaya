@@ -57,19 +57,14 @@ struct LoginView: View {
     }
 
     private func doLogin() {
-        let mobile = InputParsing.normalizedMobile(appState.loginMobile)
-        let password = appState.loginPassword
-        let descriptor = FetchDescriptor<UserAccount>(predicate: #Predicate { $0.mobile == mobile })
-        guard let user = (try? modelContext.fetch(descriptor))?.first else {
-            appState.loginError = "No account found for that mobile number."
-            return
+        do {
+            let user = try AuthController(context: modelContext)
+                .login(mobile: appState.loginMobile, password: appState.loginPassword)
+            appState.loginError = nil
+            appState.applyUser(user)
+            appState.phase = .main
+        } catch {
+            appState.loginError = error.localizedDescription
         }
-        guard user.verifyPassword(password) else {
-            appState.loginError = "Incorrect password."
-            return
-        }
-        appState.loginError = nil
-        appState.applyUser(user)
-        appState.phase = .main
     }
 }

@@ -59,40 +59,16 @@ struct RegisterView: View {
     }
 
     private func doRegister() {
-        guard !appState.regName.trimmingCharacters(in: .whitespaces).isEmpty,
-              !appState.regMobile.trimmingCharacters(in: .whitespaces).isEmpty,
-              !appState.regPassword.isEmpty else {
-            appState.registerError = "Please fill in your name, mobile number, and password."
-            return
+        do {
+            let user = try AuthController(context: modelContext).register(
+                name: appState.regName, mobile: appState.regMobile, municipality: appState.regMunicipality,
+                province: appState.regProvince, landingSite: appState.regLanding,
+                fisherfolkID: appState.regFID, password: appState.regPassword)
+            appState.registerError = nil
+            appState.applyUser(user)
+            appState.phase = .main
+        } catch {
+            appState.registerError = error.localizedDescription
         }
-        let mobile = InputParsing.normalizedMobile(appState.regMobile)
-        let descriptor = FetchDescriptor<UserAccount>(predicate: #Predicate { $0.mobile == mobile })
-        guard InputParsing.isValidMobile(mobile) else {
-            appState.registerError = "Enter a valid 11-digit mobile number (09XX XXX XXXX)."
-            return
-        }
-        if let existing = try? modelContext.fetch(descriptor), !existing.isEmpty {
-            appState.registerError = "An account with that mobile number already exists."
-            return
-        }
-        let user = UserAccount(
-            fullName: appState.regName,
-            mobile: mobile,
-            password: appState.regPassword,
-            municipality: appState.regMunicipality,
-            province: appState.regProvince,
-            landingSite: appState.regLanding,
-            fisherfolkID: appState.regFID
-        )
-        modelContext.insert(user)
-        try? modelContext.save()
-
-        let welcome = AdvisorMessageRecord(isUser: false, text: "Kamusta, \(user.fullName.split(separator: " ").first.map(String.init) ?? "there"). Ano ang gusto mong malaman?")
-        modelContext.insert(welcome)
-        try? modelContext.save()
-
-        appState.registerError = nil
-        appState.applyUser(user)
-        appState.phase = .main
     }
 }
