@@ -48,7 +48,7 @@ struct ListingDetailsView: View {
 
                     HStack { Text("Landing Site").foregroundColor(.pkSub); Spacer(); Text(appState.currentUserLandingSite).font(.system(size: 13.5, weight: .semibold)) }
                         .font(.system(size: 13)).padding(.bottom, 6)
-                    HStack { Text("Caught").foregroundColor(.pkSub); Spacer(); Text("Today · \(c.timeLabel)").font(.system(size: 13.5, weight: .semibold)) }
+                    HStack { Text("Caught").foregroundColor(.pkSub); Spacer(); Text(c.loggedLabel).font(.system(size: 13.5, weight: .semibold)) }
                         .font(.system(size: 13)).padding(.bottom, 20)
 
                     if let fair {

@@ -56,7 +56,7 @@ final class CatchRecord {
     var buyersInterested: Int?
     var hasPhoto: Bool
 
-    init(species: String, weight: Double, ground: String, timeLabel: String,
+    init(species: String, weight: Double, ground: String, timeLabel: String, dateLogged: Date = Date(),
          status: CatchStatus = .available, price: Double? = nil, saleAmount: Double? = nil,
          buyerName: String? = nil, alignment: Int? = nil, buyersInterested: Int? = nil, hasPhoto: Bool = false) {
         self.id = UUID()
@@ -64,7 +64,7 @@ final class CatchRecord {
         self.weight = weight
         self.ground = ground
         self.timeLabel = timeLabel
-        self.dateLogged = Date()
+        self.dateLogged = dateLogged
         self.statusRaw = status.rawValue
         self.price = price
         self.saleAmount = saleAmount
@@ -78,6 +78,8 @@ final class CatchRecord {
         get { CatchStatus(rawValue: statusRaw) ?? .available }
         set { statusRaw = newValue.rawValue }
     }
+
+    var loggedLabel: String { "\(dateLogged.pkDayLabel) · \(timeLabel)" }
 
     var fair: FairPriceInfo? { FAIR_DB[species] }
 }

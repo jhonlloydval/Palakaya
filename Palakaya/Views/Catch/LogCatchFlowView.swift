@@ -97,14 +97,13 @@ struct LogCatchFlowView: View {
 
                 PKTextField(text: $appState.lcGround).pkField("Fishing Ground")
 
-                HStack {
-                    Image(systemName: "calendar").foregroundColor(.pkSub)
-                    Text("Today, 6:45 AM").foregroundColor(.pkText)
-                }
-                .padding(.horizontal, 14).padding(.vertical, 12)
-                .background(Color.pkSurface2)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .pkField("Date & Time")
+                DatePicker("", selection: $appState.lcDate, in: ...Date(), displayedComponents: [.date, .hourAndMinute])
+                    .labelsHidden()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14).padding(.vertical, 8)
+                    .background(Color.pkSurface2)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .pkField("Date & Time")
 
                 Button {
                     appState.lcPhoto.toggle()
@@ -140,7 +139,7 @@ struct LogCatchFlowView: View {
                     Text("\(weight.pkTrimmed) kg").font(.system(size: 13)).foregroundColor(.pkSub).padding(.bottom, 8)
                     HStack(spacing: 4) { Image(systemName: "mappin.circle.fill").font(.system(size: 12)); Text(appState.lcGround).font(.system(size: 13)) }
                         .foregroundColor(.pkSub)
-                    HStack(spacing: 4) { Image(systemName: "clock").font(.system(size: 12)); Text("Today · 6:45 AM").font(.system(size: 13)) }
+                    HStack(spacing: 4) { Image(systemName: "clock").font(.system(size: 12)); Text("\(appState.lcDate.pkDayLabel) · \(appState.lcDate.pkTimeLabel)").font(.system(size: 13)) }
                         .foregroundColor(.pkSub)
                 }
                 .padding(.bottom, 16)
@@ -170,7 +169,8 @@ struct LogCatchFlowView: View {
     private func save(andList: Bool) {
         guard let species = appState.lcSpecies else { return }
         let weight = InputParsing.weightKg(appState.lcWeight) ?? 0
-        let record = CatchRecord(species: species, weight: weight, ground: appState.lcGround, timeLabel: "6:45 AM")
+        let record = CatchRecord(species: species, weight: weight, ground: appState.lcGround,
+                                 timeLabel: appState.lcDate.pkTimeLabel, dateLogged: appState.lcDate)
         modelContext.insert(record)
         try? modelContext.save()
 

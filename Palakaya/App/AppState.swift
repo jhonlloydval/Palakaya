@@ -73,6 +73,7 @@ final class AppState {
     var lcWeight: String = ""
     var lcGround: String = "Sabang Fishing Ground"
     var lcPhoto = false
+    var lcDate = Date()
 
     // Active records / flows
     var activeCatchID: UUID?
@@ -94,6 +95,7 @@ final class AppState {
         lcWeight = ""
         lcGround = "Sabang Fishing Ground"
         lcPhoto = false
+        lcDate = Date()
     }
 
     func openLogCatch() {

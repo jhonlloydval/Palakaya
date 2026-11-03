@@ -198,7 +198,7 @@ struct CatchCardView: View {
                         Text("\(record.weight.pkTrimmed) kg · \(record.ground)").font(.system(size: 13)).foregroundColor(.pkSub)
                         HStack(spacing: 4) {
                             Image(systemName: "clock").font(.system(size: 11)).foregroundColor(.pkSub)
-                            Text("Today · \(record.timeLabel)").font(.system(size: 12)).foregroundColor(.pkSub)
+                            Text(record.loggedLabel).font(.system(size: 12)).foregroundColor(.pkSub)
                         }
                     }
                     Spacer()

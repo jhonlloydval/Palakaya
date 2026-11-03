@@ -25,7 +25,7 @@ struct CatchDetailsView: View {
                     VStack(spacing: 12) {
                         HStack(spacing: 12) {
                             detailBox("Weight", "\(c.weight.pkTrimmed) kg")
-                            detailBox("Date / Time", "Today, \(c.timeLabel)")
+                            detailBox("Date / Time", c.loggedLabel)
                         }
                         detailBox("Fishing Ground", c.ground)
                     }
