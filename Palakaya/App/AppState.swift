@@ -143,6 +143,7 @@ final class AppState {
         currentUserName = user.fullName
         currentUserMunicipality = user.municipality
         currentUserProvince = user.province
+        FairPriceService.homeProvince = user.province
         currentUserLandingSite = user.landingSite
         currentUserFID = user.fisherfolkID
         currentUserMobile = user.mobile

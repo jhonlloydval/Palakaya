@@ -21,9 +21,13 @@ let ESTIMATED_FAIR_PRICES: [String: FairPriceInfo] = [
 ]
 
 let RECENT_SPECIES = ["Galunggong", "Tamban", "Tulingan", "Bisugo"]
-/// Live prices from real sales where available, otherwise the built-in estimate.
+/// Prices from the fisher's own province where it has enough sales, then all Palakaya sales, then the estimate.
 var FAIR_DB: [String: FairPriceInfo] {
-    ESTIMATED_FAIR_PRICES.merging(FairPriceService.live) { _, live in live }
+    let home = FairPriceService.regionalKey(matching: FairPriceService.homeProvince)
+        .flatMap { FairPriceService.regional[$0] } ?? [:]
+    return ESTIMATED_FAIR_PRICES
+        .merging(FairPriceService.live) { _, live in live }
+        .merging(home) { _, regional in regional }
 }
 
 let ALL_SPECIES = Array(ESTIMATED_FAIR_PRICES.keys).sorted()
