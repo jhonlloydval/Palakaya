@@ -80,7 +80,7 @@ final class AppState {
     var lcStep = 1
     var lcSpecies: String?
     var lcWeight: String = ""
-    var lcGround: String = "Sabang Fishing Ground"
+    var lcGround: String = ""
     var lcPhoto = false
     var lcDate = Date()
 
@@ -88,7 +88,7 @@ final class AppState {
     var activeCatchID: UUID?
     var listPrice: String = ""
     var listingQty: String = ""
-    var listingLocation: String = "Sabang Landing Site, Batangas"
+    var listingLocation: String = ""
     var listingPickup: String = "Today, after 3:00 PM"
     var listingNotes: String = ""
     var selectedBuyer: Buyer?
@@ -107,7 +107,7 @@ final class AppState {
         lcStep = 1
         lcSpecies = nil
         lcWeight = ""
-        lcGround = "Sabang Fishing Ground"
+        lcGround = currentUserLandingSite
         lcPhoto = false
         lcDate = Date()
     }
@@ -142,13 +142,21 @@ final class AppState {
         currentUserName = user.fullName
         currentUserMunicipality = user.municipality
         currentUserProvince = user.province
-        currentUserLandingSite = user.landingSite.isEmpty ? "Sabang Landing Site" : user.landingSite
+        currentUserLandingSite = user.landingSite
         currentUserFID = user.fisherfolkID
         currentUserMobile = user.mobile
         currentUserRole = user.role
         currentBusinessName = user.businessName
         tab = user.isBuyer ? .market : .home
         listingLocation = "\(currentUserLandingSite)\(currentUserProvince.isEmpty ? "" : ", \(currentUserProvince)")"
+    }
+
+    /// "Dalahican Landing Site · Lucena City", built only from what the user entered.
+    var currentUserPlace: String {
+        let area = currentUserMunicipality.isEmpty
+            ? (currentUserProvince.split(separator: ",").first.map(String.init) ?? "")
+            : currentUserMunicipality
+        return [currentUserLandingSite, area].filter { !$0.isEmpty }.joined(separator: " · ")
     }
 
     var userInitials: String {

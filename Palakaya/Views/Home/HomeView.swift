@@ -21,7 +21,7 @@ struct HomeView: View {
                             .font(.system(size: 19, weight: .bold))
                         HStack(spacing: 4) {
                             Image(systemName: "mappin.circle.fill").font(.system(size: 12)).foregroundColor(.pkSub)
-                            Text("\(appState.currentUserLandingSite) · \(appState.currentUserProvince.split(separator: ",").first.map(String.init) ?? "Batangas")")
+                            Text(appState.currentUserPlace)
                                 .font(.system(size: 13)).foregroundColor(.pkSub)
                         }
                     }

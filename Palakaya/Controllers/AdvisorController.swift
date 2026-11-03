@@ -11,7 +11,7 @@ enum Advisor {
         if let species = FAIR_DB.keys.first(where: { q.contains($0.lowercased()) }) {
             let f = FAIR_DB[species]!
             let trend = f.week >= 0 ? "up \(String(format: "%.1f", f.week))%" : "down \(String(format: "%.1f", abs(f.week)))%"
-            return "Based on recent Palakaya transactions in Batangas, \(species) is currently selling around ₱\(f.low)–₱\(f.high)/kg (average ₱\(f.mid)). Prices are \(trend) this week."
+            return "Based on recent Palakaya transactions near you, \(species) is currently selling around ₱\(f.low)–₱\(f.high)/kg (average ₱\(f.mid)). Prices are \(trend) this week."
         }
 
         if q.contains("fishing ground") || q.contains("saan") || q.contains("ground") {

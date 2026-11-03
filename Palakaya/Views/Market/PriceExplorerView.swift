@@ -19,7 +19,7 @@ struct PriceExplorerView: View {
 
                 HStack(spacing: 6) {
                     Image(systemName: "mappin.circle.fill").font(.system(size: 13)).foregroundColor(.pkDark)
-                    Text("Batangas").font(.system(size: 13, weight: .medium)).foregroundColor(.pkDark)
+                    Text(appState.currentUserProvince.split(separator: ",").first.map(String.init) ?? "Your area").font(.system(size: 13, weight: .medium)).foregroundColor(.pkDark)
                     Image(systemName: "chevron.down").font(.system(size: 11)).foregroundColor(.pkDark)
                 }
                 .padding(.bottom, 16)

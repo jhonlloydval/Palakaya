@@ -60,7 +60,7 @@ struct ProfileView: View {
                         Image(systemName: "mappin.circle.fill").font(.system(size: 11)).foregroundColor(.pkSub)
                         Text(appState.isBuyer
                              ? [appState.currentUserMunicipality, appState.currentUserProvince].filter { !$0.isEmpty }.joined(separator: ", ")
-                             : (appState.currentUserLandingSite.isEmpty ? "Sabang Landing Site, Batangas" : "\(appState.currentUserLandingSite), \(appState.currentUserProvince)"))
+                             : [appState.currentUserLandingSite, appState.currentUserMunicipality, appState.currentUserProvince].filter { !$0.isEmpty }.joined(separator: ", "))
                             .font(.system(size: 12.5)).foregroundColor(.pkSub)
                     }
                 }
