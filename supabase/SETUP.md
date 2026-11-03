@@ -29,5 +29,23 @@ The app works fully offline without this. These steps turn on cloud sync.
   with no names, and hides any group with fewer than 5 catches.
 
 ## Known limits (prototype)
-- Sync is upload-only. Data entered on another phone does not download yet.
-- Catches on the phone are not separated per account. Use one account per device.
+- Catches download after login, but edits made on two phones at the same time are not merged:
+  the phone that uploads last wins.
+- Advisor chat history stays on the phone; it is not synced.
+
+## AI Advisor (free)
+Without this, the Advisor still answers offline with simple built-in rules.
+Everything here is free: the Advisor runs as a Supabase Edge Function (free plan) and uses
+Google Gemini's free tier (no credit card; daily limits apply).
+
+Note: on Gemini's free tier Google may use requests to improve its models. The Advisor sends catch records and
+municipality, never names, mobile numbers or passwords.
+
+1. Get a key: https://aistudio.google.com/apikey → sign in with Google → **Create API key**.
+2. Supabase → **Edge Functions** → **Secrets** → add `GEMINI_API_KEY` with that key.
+   The key stays on the server; it is never put in the app.
+3. Supabase → **Edge Functions** → **Deploy a new function** → **Via Editor**.
+   Name it exactly `advisor`, replace the sample code with all of `supabase/functions/advisor/index.ts`, and click **Deploy**.
+   Leave **Verify JWT** on, so only signed-in fishers can use it.
+4. In the app, open **Advisor**, type a question and send. Answers use your own catches and current fair prices.
+   If the free limit is reached, or there is no signal, the app answers with the offline rules instead.
