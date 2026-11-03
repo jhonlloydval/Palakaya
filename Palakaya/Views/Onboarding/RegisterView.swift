@@ -36,13 +36,17 @@ struct RegisterView: View {
                     }
                     PKTextField(placeholder: "Juan Dela Cruz", text: $appState.regName).pkField("Full Name")
                     PKTextField(placeholder: "09XX XXX XXXX", text: $appState.regMobile, keyboard: .phonePad).pkField("Mobile Number")
-                    PKTextField(placeholder: "Bauan", text: $appState.regMunicipality).pkField("Municipality")
-                    PKTextField(placeholder: "Batangas, CALABARZON", text: $appState.regProvince).pkField("Province / Region")
+                    PKTextField(placeholder: "Lucena City", text: $appState.regMunicipality).pkField("Municipality")
+                    PKTextField(placeholder: "Quezon, CALABARZON", text: $appState.regProvince).pkField("Province / Region")
                     if appState.regRole == "fisher" {
-                        PKTextField(placeholder: "Sabang Landing Site", text: $appState.regLanding).pkField("Home Port / Landing Site")
+                        PKTextField(placeholder: "Dalahican Landing Site", text: $appState.regLanding).pkField("Home Port / Landing Site")
                         PKTextField(placeholder: "Optional", text: $appState.regFID).pkField("Fisherfolk ID (if applicable)")
                     }
-                    PKTextField(placeholder: "Create a password", text: $appState.regPassword, isSecure: true).pkField("Password")
+                    PKTextField(placeholder: "e.g. Kahitano1Jl", text: $appState.regPassword, isSecure: true)
+                        .pkField("Password")
+                        .padding(.bottom, -8)
+                    passwordChecklist
+                        .padding(.bottom, 18)
 
                     HStack(alignment: .top, spacing: 10) {
                         Image(systemName: "lock.fill").foregroundColor(.pkDark)
@@ -71,6 +75,23 @@ struct RegisterView: View {
         }
         .background(Color.pkBg)
         .scrollDismissesKeyboard(.interactively)
+    }
+
+    private var passwordChecklist: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            ForEach(InputParsing.passwordRules, id: \.label) { rule in
+                let met = rule.check(appState.regPassword)
+                HStack(spacing: 6) {
+                    Image(systemName: met ? "checkmark.circle.fill" : "circle")
+                        .foregroundColor(met ? .pkSuccess : .pkSub)
+                    Text(rule.label).foregroundColor(met ? .pkText : .pkSub)
+                }
+                .font(.system(size: 12.5))
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("\(rule.label), \(met ? "done" : "not yet")")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func doRegister() {

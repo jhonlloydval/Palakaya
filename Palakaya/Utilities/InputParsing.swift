@@ -13,6 +13,19 @@ enum InputParsing {
         return m.count == 11 && m.hasPrefix("09")
     }
 
+    /// Password rules shown on the sign-up form: at least 8 characters with an uppercase letter,
+    /// a lowercase letter and a number (e.g. "Kahitano1Jl").
+    static let passwordRules: [(label: String, check: (String) -> Bool)] = [
+        ("At least 8 characters", { $0.count >= 8 }),
+        ("An uppercase letter (A–Z)", { $0.contains(where: \.isUppercase) }),
+        ("A lowercase letter (a–z)", { $0.contains(where: \.isLowercase) }),
+        ("A number (0–9)", { $0.contains(where: \.isNumber) }),
+    ]
+
+    static func isStrongPassword(_ password: String) -> Bool {
+        passwordRules.allSatisfy { $0.check(password) }
+    }
+
     /// Accepts "8.5" and "8,5". Returns nil unless the weight is within a sane per-catch range.
     static func weightKg(_ raw: String) -> Double? {
         let cleaned = raw.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: ".")

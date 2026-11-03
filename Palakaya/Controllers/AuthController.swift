@@ -5,6 +5,7 @@ enum AuthError: LocalizedError {
     case missingFields
     case missingBusiness
     case invalidMobile
+    case weakPassword
     case accountExists
     case accountNotFound
     case wrongPassword
@@ -15,6 +16,7 @@ enum AuthError: LocalizedError {
         case .missingFields: return "Please fill in your name, mobile number, and password."
         case .missingBusiness: return "Please enter your store, stall or cooperative name."
         case .invalidMobile: return "Enter a valid 11-digit mobile number (09XX XXX XXXX)."
+        case .weakPassword: return "Your password needs at least 8 characters, with an uppercase letter, a lowercase letter and a number."
         case .accountExists: return "An account with that mobile number already exists."
         case .accountNotFound: return "No account found for that mobile number."
         case .wrongPassword: return "Incorrect password."
@@ -73,6 +75,7 @@ struct AuthController {
             throw AuthError.missingBusiness
         }
         guard InputParsing.isValidMobile(rawMobile) else { throw AuthError.invalidMobile }
+        guard InputParsing.isStrongPassword(password) else { throw AuthError.weakPassword }
         let mobile = InputParsing.normalizedMobile(rawMobile)
         guard try findUser(mobile: mobile) == nil else { throw AuthError.accountExists }
 
