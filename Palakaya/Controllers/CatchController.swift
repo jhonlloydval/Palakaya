@@ -18,7 +18,7 @@ struct CatchController {
     func publishListing(_ record: CatchRecord, pricePerKg: Double) throws {
         record.status = .listed
         record.price = pricePerKg
-        record.buyersInterested = BUYERS.count
+        record.buyersInterested = 0
         record.needsSync = true
         try context.save()
     }
@@ -26,7 +26,7 @@ struct CatchController {
     /// Records the sale and returns the summary shown on the confirmation screen.
     /// `alignment` is nil when the species has no benchmark yet.
     func completeSale(_ record: CatchRecord, buyer: Buyer) throws -> SaleResult {
-        let amount = Int(record.weight * Double(buyer.offer))
+        let amount = Int((buyer.quantity ?? record.weight) * Double(buyer.offer))
         let alignment = record.fair.map { Int(Double(buyer.offer) / Double($0.mid) * 100) }
         record.status = .sold
         record.price = Double(buyer.offer)
