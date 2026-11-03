@@ -14,23 +14,7 @@ struct CatchDetailsView: View {
         ScrollView {
             if let c = record {
                 VStack(alignment: .leading, spacing: 0) {
-                    Group {
-                        if let data = c.photoData, let image = UIImage(data: data) {
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                                .accessibilityLabel("Photo of this catch")
-                        } else {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 18).fill(Color.pkSurface2).frame(height: 144)
-                                Image(systemName: "water.waves").font(.system(size: 36)).foregroundColor(.pkAqua)
-                            }
-                        }
-                    }
-                    .padding(.bottom, 16)
+                    CatchPhotoBanner(photo: c.photoData).padding(.bottom, 16)
 
                     Text(c.species).font(.system(size: 22, weight: .bold))
                     Text("Catch ID: \(c.id.uuidString.prefix(8).uppercased())").font(.system(size: 13)).foregroundColor(.pkSub).padding(.bottom, 16)

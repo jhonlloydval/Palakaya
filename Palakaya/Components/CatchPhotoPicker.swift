@@ -107,3 +107,24 @@ private struct CameraCapture: UIViewControllerRepresentable {
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) { parent.dismiss() }
     }
 }
+
+/// The catch photo at the top of a catch or listing, or a wave placeholder when there is none.
+struct CatchPhotoBanner: View {
+    var photo: Data?
+    var body: some View {
+        if let photo, let image = UIImage(data: photo) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(maxWidth: .infinity)
+                .frame(height: 200)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .accessibilityLabel("Photo of this catch")
+        } else {
+            ZStack {
+                RoundedRectangle(cornerRadius: 18).fill(Color.pkSurface2).frame(height: 144)
+                Image(systemName: "water.waves").font(.system(size: 36)).foregroundColor(.pkAqua)
+            }
+        }
+    }
+}
