@@ -12,7 +12,8 @@ struct MarketView: View {
         @Bindable var appState = appState
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Marketplace").font(.system(size: 26, weight: .bold)).padding(.top, 16).padding(.bottom, 16)
+                Text(appState.isBuyer ? "Buy Fresh Catch" : "Marketplace")
+                    .font(.system(size: 26, weight: .bold)).padding(.top, 16).padding(.bottom, 16)
 
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundColor(.pkSub)
@@ -26,13 +27,15 @@ struct MarketView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.bottom, 12)
 
+                if !appState.isBuyer {
                 SectionHeading(title: "Your Listings")
                 if mine.isEmpty {
                     EmptyStateView(title: "Nothing for sale yet.", cta: "List a Catch") { appState.goTab(.catchTab) }
                 } else {
                     ForEach(mine) { c in
                         MarketCardView(species: c.species, weight: c.weight, price: Int(c.price ?? 0),
-                                       mine: true, buyersInterested: c.buyersInterested ?? 0,
+                                       mine: true,
+                                       buyersInterested: OfferController.pendingOffers(for: c.id, in: appState.myOffers).count,
                                        seller: nil, rating: nil, site: nil, distance: nil, fresh: false) {
                             appState.activeCatchID = c.id
                             appState.path.append(Route.listingDetails(c.id))
@@ -40,7 +43,10 @@ struct MarketView: View {
                     }
                 }
 
-                SectionHeading(title: appState.marketIsSample ? "Sample Listings" : "Available From Other Fishers")
+                }
+
+                SectionHeading(title: appState.marketIsSample ? "Sample Listings"
+                               : (appState.isBuyer ? "Fresh Catch From Fishers" : "Available From Other Fishers"))
                 if appState.marketIsSample {
                     InfoBox(text: "These are sample listings. Sign in with cloud sync on to see real catches for sale.")
                         .padding(.bottom, 12)
@@ -61,8 +67,13 @@ struct MarketView: View {
         }
         .background(Color.pkBg)
         .navigationBarHidden(true)
-        .task { await MarketController.refresh(appState: appState) }
-        .refreshable { await MarketController.refresh(appState: appState) }
+        .task { await reload() }
+        .refreshable { await reload() }
+    }
+
+    private func reload() async {
+        await MarketController.refresh(appState: appState)
+        await OfferController.refresh(appState: appState)
     }
 
     private var others: [OtherListing] {
@@ -119,7 +130,7 @@ struct MarketCardView: View {
                 Divider().overlay(Color.pkBorder).padding(.vertical, 12)
                 HStack {
                     if mine {
-                        Text("\(buyersInterested) buyers interested").font(.system(size: 14, weight: .semibold)).foregroundColor(.pkDark)
+                        Text(buyersInterested == 1 ? "1 offer waiting" : "\(buyersInterested) offers waiting").font(.system(size: 14, weight: .semibold)).foregroundColor(.pkDark)
                     } else {
                         HStack(spacing: 4) {
                             Image(systemName: "mappin.circle.fill").font(.system(size: 12)).foregroundColor(.pkSub)
