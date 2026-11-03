@@ -8,14 +8,13 @@ struct MainTabView: View {
         @Bindable var appState = appState
         NavigationStack(path: $appState.path) {
             tabRoot
+                // Inset the tab root itself (not the stack) so its scroll view can reach content under the tab bar.
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    CustomTabBar()
+                }
                 .navigationDestination(for: Route.self) { route in
                     destination(for: route)
                 }
-        }
-        .safeAreaInset(edge: .bottom) {
-            if appState.path.isEmpty {
-                CustomTabBar()
-            }
         }
         .sheet(isPresented: $appState.showLogCatch) {
             LogCatchFlowView()
