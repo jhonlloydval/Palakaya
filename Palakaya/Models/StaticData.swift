@@ -90,6 +90,9 @@ struct NotificationItem: Identifiable {
     var kind: String
     var text: String
     var time: String
+    /// Where tapping the notification goes: a tab, then optionally a screen inside it.
+    var tab: AppTab? = nil
+    var route: Route? = nil
 }
 
 let BUYER_ADVISOR_SUGGESTIONS = [

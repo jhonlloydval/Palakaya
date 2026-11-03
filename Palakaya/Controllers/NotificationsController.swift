@@ -33,7 +33,9 @@ enum NotificationsController {
             }
             if let text {
                 items.append((date, NotificationItem(id: "offer-\(o.id)-\(o.status.rawValue)", kind: kind,
-                                                     text: text, time: relative(date, now))))
+                                                     text: text, time: relative(date, now),
+                                                     tab: o.iAmBuyer ? .offers : .market,
+                                                     route: o.iAmBuyer ? nil : .buyerMatches(o.catchID))))
             }
         }
 
@@ -41,14 +43,14 @@ enum NotificationsController {
         if AppConfig.isCloudEnabled && pending > 0 {
             items.append((now, NotificationItem(id: "sync", kind: "SYNC",
                 text: "\(pending) record\(pending == 1 ? "" : "s") waiting to upload. Tap the Wi-Fi button on Home when you have signal.",
-                time: "Now")))
+                time: "Now", tab: .profile, route: .profileInfo(.connectivity))))
         }
 
         if !marketIsSample {
             let today = market.filter(\.fresh).count
             if today > 0 {
                 items.append((now, NotificationItem(id: "market", kind: "MARKET",
-                    text: "\(today) new catch\(today == 1 ? "" : "es") for sale from other fishers today.", time: "Today")))
+                    text: "\(today) new catch\(today == 1 ? "" : "es") for sale from other fishers today.", time: "Today", tab: .market)))
             }
         }
 
@@ -59,12 +61,12 @@ enum NotificationsController {
                 let buyer = c.buyerName.map { " to \($0)" } ?? ""
                 items.append((c.dateLogged, NotificationItem(id: "sold-\(c.id)", kind: "SALE",
                     text: "You sold \(c.weight.pkTrimmed) kg of \(c.species)\(buyer) for ₱\(amount.formatted()).",
-                    time: relative(c.dateLogged, now))))
+                    time: relative(c.dateLogged, now), tab: .catchTab, route: .catchDetails(c.id))))
             case .listed:
                 let price = Int(c.price ?? 0)
                 items.append((c.dateLogged, NotificationItem(id: "listed-\(c.id)", kind: "LISTING",
                     text: "Your \(c.species) (\(c.weight.pkTrimmed) kg) is listed at ₱\(price)/kg.",
-                    time: relative(c.dateLogged, now))))
+                    time: relative(c.dateLogged, now), tab: .market, route: .listingDetails(c.id))))
             case .available:
                 continue
             }
@@ -74,7 +76,7 @@ enum NotificationsController {
             guard let count = info.saleCount else { continue }
             items.append((now.addingTimeInterval(-1), NotificationItem(id: "price-\(species)", kind: "PRICE UPDATE",
                 text: "\(species) fair price is now ₱\(info.low)–₱\(info.high)/kg, based on \(count) recent sales.",
-                time: "Today")))
+                time: "Today", tab: .home, route: .priceExplorer)))
         }
 
         return items.sorted { $0.date > $1.date }.prefix(20).map(\.item)
