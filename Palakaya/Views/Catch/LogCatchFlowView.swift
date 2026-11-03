@@ -196,6 +196,7 @@ struct LogCatchFlowView: View {
         }
 
         appState.activeCatchID = record.id
+        Task { await SyncController.sync(appState: appState, context: modelContext) }
         appState.resetLogCatch()
         dismiss()
 

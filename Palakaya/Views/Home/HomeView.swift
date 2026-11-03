@@ -3,6 +3,7 @@ import SwiftData
 
 struct HomeView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \CatchRecord.dateLogged, order: .reverse) private var catches: [CatchRecord]
 
     private var todayWeight: Double { catches.reduce(0) { $0 + $1.weight } }
@@ -25,7 +26,7 @@ struct HomeView: View {
                     }
                     Spacer()
                     HStack(spacing: 8) {
-                        Button { appState.isOffline.toggle() } label: {
+                        Button { Task { await SyncController.sync(appState: appState, context: modelContext) } } label: {
                             ZStack {
                                 Circle().fill(Color.pkSurface2).frame(width: 36, height: 36)
                                 Image(systemName: appState.isOffline ? "wifi.slash" : "wifi")

@@ -68,6 +68,7 @@ struct CreateListingView: View {
                     PrimaryButton(title: "Publish Listing", isDisabled: price <= 0) {
                         do {
                             try CatchController(context: modelContext).publishListing(c, pricePerKg: price)
+                            Task { await SyncController.sync(appState: appState, context: modelContext) }
                             appState.path.append(Route.listingDetails(c.id))
                         } catch {
                             appState.errorMessage = "Your listing could not be published. Please try again."

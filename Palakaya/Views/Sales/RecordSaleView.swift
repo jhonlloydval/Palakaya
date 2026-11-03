@@ -39,6 +39,7 @@ struct RecordSaleView: View {
                     PrimaryButton(title: "Complete Sale") {
                         do {
                             appState.saleResult = try CatchController(context: modelContext).completeSale(c, buyer: b)
+                            Task { await SyncController.sync(appState: appState, context: modelContext) }
                         } catch {
                             appState.errorMessage = "Your sale could not be recorded. Please try again."
                             return

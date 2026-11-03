@@ -111,6 +111,7 @@ final class AppState {
     }
 
     func logout() {
+        SupabaseClient.shared.signOut()
         phase = .onboarding
         obStep = 0
         tab = .home

@@ -67,6 +67,9 @@ struct RegisterView: View {
             appState.registerError = nil
             appState.applyUser(user)
             appState.phase = .main
+            let password = appState.regPassword
+            appState.regPassword = ""
+            Task { await SyncController.connectAndSync(user: user, password: password, appState: appState, context: modelContext) }
         } catch {
             appState.registerError = error.localizedDescription
         }

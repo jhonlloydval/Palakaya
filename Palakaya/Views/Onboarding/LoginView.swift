@@ -63,6 +63,9 @@ struct LoginView: View {
             appState.loginError = nil
             appState.applyUser(user)
             appState.phase = .main
+            let password = appState.loginPassword
+            appState.loginPassword = ""
+            Task { await SyncController.connectAndSync(user: user, password: password, appState: appState, context: modelContext) }
         } catch {
             appState.loginError = error.localizedDescription
         }
