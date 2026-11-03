@@ -7,8 +7,9 @@ struct HomeView: View {
     @Query(sort: \CatchRecord.dateLogged, order: .reverse) private var allCatches: [CatchRecord]
     private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
-    private var todayWeight: Double { catches.reduce(0) { $0 + $1.weight } }
-    private var todayValue: Double { catches.reduce(0) { $0 + $1.weight * Double(FAIR_DB[$1.species]?.mid ?? 0) } }
+    private var todaysCatches: [CatchRecord] { catches.filter { Calendar.current.isDateInToday($0.dateLogged) } }
+    private var todayWeight: Double { todaysCatches.reduce(0) { $0 + $1.weight } }
+    private var todayValue: Double { todaysCatches.reduce(0) { $0 + $1.weight * Double(FAIR_DB[$1.species]?.mid ?? 0) } }
 
     var body: some View {
         @Bindable var appState = appState
@@ -42,10 +43,13 @@ struct HomeView: View {
                                 Circle().fill(Color.pkDanger).frame(width: 7, height: 7).offset(x: 2, y: -1)
                             }
                         }
-                        ZStack {
-                            Circle().fill(Color.pkDark).frame(width: 36, height: 36)
-                            Text(appState.userInitials).font(.system(size: 12, weight: .bold)).foregroundColor(.white)
+                        Button { appState.goTab(.profile) } label: {
+                            ZStack {
+                                Circle().fill(Color.pkDark).frame(width: 36, height: 36)
+                                Text(appState.userInitials).font(.system(size: 12, weight: .bold)).foregroundColor(.white)
+                            }
                         }
+                        .accessibilityLabel("Profile")
                     }
                 }
                 .padding(.top, 12)
