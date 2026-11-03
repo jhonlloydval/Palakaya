@@ -37,15 +37,12 @@ struct RecordSaleView: View {
                         .padding(.bottom, 24)
 
                     PrimaryButton(title: "Complete Sale") {
-                        let amount = Int(c.weight * Double(b.offer))
-                        let alignment = c.fair.map { Int((Double(b.offer) / Double($0.mid)) * 100) }
-                        c.status = .sold
-                        c.price = Double(b.offer)
-                        c.saleAmount = Double(amount)
-                        c.buyerName = b.name
-                        c.alignment = alignment
-                        try? modelContext.save()
-                        appState.saleResult = SaleResult(amount: amount, alignment: alignment, buyerName: b.name, species: c.species)
+                        do {
+                            appState.saleResult = try CatchController(context: modelContext).completeSale(c, buyer: b)
+                        } catch {
+                            appState.errorMessage = "Your sale could not be recorded. Please try again."
+                            return
+                        }
                         appState.path.append(Route.saleRecorded)
                     }
                 }

@@ -169,10 +169,15 @@ struct LogCatchFlowView: View {
     private func save(andList: Bool) {
         guard let species = appState.lcSpecies else { return }
         let weight = InputParsing.weightKg(appState.lcWeight) ?? 0
-        let record = CatchRecord(species: species, weight: weight, ground: appState.lcGround,
-                                 timeLabel: appState.lcDate.pkTimeLabel, dateLogged: appState.lcDate)
-        modelContext.insert(record)
-        try? modelContext.save()
+        let record: CatchRecord
+        do {
+            record = try CatchController(context: modelContext)
+                .saveCatch(species: species, weight: weight, ground: appState.lcGround,
+                           date: appState.lcDate, hasPhoto: appState.lcPhoto)
+        } catch {
+            appState.errorMessage = "Your catch could not be saved. Please try again."
+            return
+        }
 
         appState.activeCatchID = record.id
         appState.resetLogCatch()
