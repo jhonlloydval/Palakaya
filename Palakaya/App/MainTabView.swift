@@ -16,6 +16,9 @@ struct MainTabView: View {
                     destination(for: route)
                 }
         }
+        .fullScreenCover(isPresented: $appState.showWelcomeTour) {
+            WelcomeTourView()
+        }
         .sheet(isPresented: $appState.showLogCatch) {
             LogCatchFlowView()
         }

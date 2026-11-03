@@ -72,6 +72,7 @@ final class AppState {
     // Misc UI
     var isOffline = false
     var showNotifs = false
+    var showWelcomeTour = false
     var errorMessage: String?
     var historyFilter = "All"
 
