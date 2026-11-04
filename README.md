@@ -371,32 +371,40 @@ The figure traces how a single fisher interaction becomes both a fisher-facing m
 Palakaya/
 ├── Palakaya.xcodeproj/
 ├── Palakaya/
-│   ├── App/            PalakayaApp (entry point, demo seed), RootView, MainTabView, AppState
-│   ├── Models/         UserAccount, CatchRecord, AdvisorMessageRecord, StaticData (species, estimates)
-│   ├── Controllers/    Auth, Catch, Market, Reports, Advisor, Sync, Notifications
-│   ├── Services/       SupabaseClient, SyncService, FairPriceService, AppConfig, KeychainStore
-│   ├── Utilities/      InputParsing (mobile, weight), PasswordHasher, DateFormatting
-│   ├── Components/     Theme (colors, buttons), SparklineChart
+│   ├── App/            PalakayaApp (entry point, demo seed, keep me logged in), RootView, MainTabView, AppState
+│   ├── Models/         UserAccount, CatchRecord, Offer, PaymentMethod, AdvisorMessageRecord, StaticData
+│   ├── Controllers/    Auth, Catch, Market, Offer, DemoPayment, Reports, Advisor, Sync, Notifications, Demo
+│   ├── Services/       SupabaseClient, SyncService, FairPriceService, WeatherService, AppConfig, KeychainStore
+│   ├── Utilities/      InputParsing (mobile, weight, password rules), PasswordHasher, DateFormatting
+│   ├── Components/     Theme (light/dark colors, buttons), SeaTodayCard, CatchPhotoPicker, SparklineChart
 │   ├── Config/         Secrets.plist (git-ignored: Supabase URL + publishable key)
 │   └── Views/
-│       ├── Onboarding/ OnboardingView, LoginView, RegisterView
+│       ├── Onboarding/ OnboardingView, LoginView, RegisterView, WelcomeTourView
 │       ├── Home/       HomeView, NotificationsSheetView
-│       ├── Catch/      MyCatchView, LogCatchFlowView, CatchDetailsView
-│       ├── Market/     MarketView, CreateListingView, ListingDetailsView,
-│       │               OtherListingDetailsView, BuyerMatchesView, PriceExplorerView
+│       ├── Catch/      MyCatchView, LogCatchFlowView, CatchDetailsView, EditCatchView
+│       ├── Market/     MarketView, CreateListingView, ListingDetailsView, OtherListingDetailsView,
+│       │               MakeOfferView, BuyerMatchesView, PriceExplorerView
+│       ├── Offers/     BuyerOffersView
+│       ├── Payments/   PaymentFlowView, PaymentReceiptView
 │       ├── Sales/      RecordSaleView, SaleRecordedView
 │       ├── Reports/    AdvisorView, ReportsView
-│       └── Profile/    ProfileView, ProfileInfoView
-└── supabase/
-    ├── schema.sql                 full database setup (tables, security, views)
-    ├── 002_market.sql             marketplace view (migration)
-    ├── 003_fair_prices.sql        fair prices from real sales (migration)
-    ├── functions/advisor/index.ts AI Advisor Edge Function (Gemini)
-    ├── Secrets.example.plist      template for Palakaya/Config/Secrets.plist
-    └── SETUP.md                   step-by-step cloud + AI setup
+│       └── Profile/    ProfileView, ProfileInfoView (details, landing site, privacy, help, about, demo tools)
+├── supabase/
+│   ├── schema.sql                   full database setup (tables, security, views)
+│   ├── 002_market.sql               marketplace view (migration)
+│   ├── 003_fair_prices.sql          fair prices from real sales (migration)
+│   ├── 004_buyers_offers.sql        buyer accounts, verification, offers, demo payments
+│   ├── 005_regional_fair_prices.sql fair prices per province
+│   ├── 006_catch_photos.sql         catch photo storage and photos on listings
+│   ├── seed_demo.sql                demo accounts and a month of data
+│   ├── functions/advisor/index.ts   AI Advisor Edge Function (Gemini, with guardrails)
+│   ├── Secrets.example.plist        template for Palakaya/Config/Secrets.plist
+│   └── SETUP.md                     step-by-step cloud + AI setup
+└── docs/
+    └── Palakaya-Guide.md            full feature guide, finals changelog, build steps, demo script
 ```
 
-The app is a 5-tab shell (**Home · Catch · Market · Advisor · Profile**) driven by one `AppState` observable object and a `NavigationStack` with a typed `Route` enum.
+The app is a 5-tab shell for fishers (**Home · Catch · Market · Advisor · Profile**) and a 4-tab shell for buyers (**Buy · My Offers · Advisor · Profile**), driven by one `AppState` observable object and a `NavigationStack` with a typed `Route` enum.
 
 ---
 
@@ -450,18 +458,21 @@ On first launch the app seeds a demo fisher (`Mang Jose Dela Cruz`) with four sa
 
 ## Cloud Backend
 
-Supabase (Postgres) tables and views, defined in [`supabase/schema.sql`](supabase/schema.sql):
+Supabase (Postgres) tables, views and storage, defined in [`supabase/schema.sql`](supabase/schema.sql) and the numbered migrations:
 
 | Object | What it holds | Who can read it |
 |---|---|---|
-| `profiles` | Fisher name, mobile, municipality, province, landing site | Only that fisher |
-| `catches` | Every catch, listing, and sale | Only the fisher who owns it (row-level security) |
+| `profiles` | Name, mobile, municipality, province, landing site, role (fisher or buyer), verified badge | Only that fisher |
+| `catches` | Every catch, listing, and sale, with an optional photo link | Only the fisher who owns it (row-level security) |
 | `market_listings` (view) | Other fishers' listed catches: species, kg, price, first name, landing site, contact number | Signed-in users |
 | `fair_prices` (view) | Per species, last 30 days of sales: p25 / median / p75, only when ≥ 5 sales | Signed-in users |
+| `regional_fair_prices` (view) | Same as `fair_prices`, per province, for the location picker | Signed-in users |
+| `offers` | Buyer offers on listings, their status and demo payments | The buyer and the fisher involved |
+| Storage bucket `catch-photos` | Catch photos, each in a folder named after its owner | Anyone with the link; only the owner can upload or delete |
 | `regional_catch_summary` (view) | Monthly totals by province and species for BFAR / LGU, anonymized, groups of ≥ 5 only | Signed-in users |
-| Edge Function `advisor` | AI Advisor (Google Gemini); checks the user is logged in | Signed-in users |
+| Edge Function `advisor` | AI Advisor (Google Gemini) with topic and safety guardrails; checks the user is logged in | Signed-in users |
 
-People who are not logged in cannot read anything. Full setup steps are in [`supabase/SETUP.md`](supabase/SETUP.md).
+Weather for Sea Today comes straight from the free Open-Meteo API, not from Supabase. People who are not logged in cannot read anything in the database. Full setup steps are in [`supabase/SETUP.md`](supabase/SETUP.md).
 
 ---
 
