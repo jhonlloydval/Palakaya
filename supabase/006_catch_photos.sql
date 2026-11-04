@@ -11,6 +11,12 @@ create policy "Fishers upload their own catch photos" on storage.objects
     for insert to authenticated
     with check (bucket_id = 'catch-photos' and (storage.foldername(name))[1] = auth.uid()::text);
 
+-- Replacing a photo (upsert) needs to see the existing file, so owners can also read their own folder.
+drop policy if exists "Fishers read their own catch photos" on storage.objects;
+create policy "Fishers read their own catch photos" on storage.objects
+    for select to authenticated
+    using (bucket_id = 'catch-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
 drop policy if exists "Fishers replace their own catch photos" on storage.objects;
 create policy "Fishers replace their own catch photos" on storage.objects
     for update to authenticated
