@@ -11,6 +11,9 @@ enum SyncController {
         SupabaseClient.shared.signOut()
         do {
             try await SyncService.connect(user: user, password: password)
+            // The Market tab may have loaded before sign-in finished and fallen back to sample
+            // listings; reload it now that the cloud session exists.
+            await MarketController.refresh(appState: appState)
             await sync(appState: appState, context: context)
             try await SyncService.pull(ownerID: user.id, context: context)
             await FairPriceService.refresh()
