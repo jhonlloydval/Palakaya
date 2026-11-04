@@ -162,6 +162,19 @@ begin
     perform public.demo_offer('c0000000-0000-4000-8000-000000000303', 'b0000000-0000-4000-8000-000000000205', bayfish, 150, 14.0, '', 'pending', null, null, 1);
 end $$;
 
+-- Photos on the demo listings (needs 006_catch_photos.sql). The image files are uploaded separately with
+-- `bash supabase/upload_demo_photos.sh`; until then the app shows its placeholder.
+do $$
+begin
+    if exists (select 1 from information_schema.columns
+               where table_schema = 'public' and table_name = 'catches' and column_name = 'photo_url') then
+        update public.catches c set photo_url = c.owner_id::text || '/' || c.id::text || '.jpg'
+        where c.id in ('a0000000-0000-4000-8000-000000000004', 'b0000000-0000-4000-8000-000000000201',
+                       'b0000000-0000-4000-8000-000000000202', 'b0000000-0000-4000-8000-000000000203',
+                       'b0000000-0000-4000-8000-000000000204', 'b0000000-0000-4000-8000-000000000205');
+    end if;
+end $$;
+
 drop function public.demo_user(uuid, text, text, text, text, text, text, text, boolean);
 drop function public.demo_catch(uuid, uuid, text, numeric, text, int, int, int, text, numeric, text);
 drop function public.demo_offer(uuid, uuid, uuid, numeric, numeric, text, text, text, text, int);
