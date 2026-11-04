@@ -7,7 +7,7 @@ enum AppPhase {
 }
 
 enum AppTab: String {
-    case home, catchTab, market, advisor, profile
+    case home, catchTab, market, advisor, profile, offers
 }
 
 enum Route: Hashable {
@@ -46,6 +46,11 @@ final class AppState {
     var currentUserLandingSite: String = ""
     var currentUserFID: String = ""
     var currentUserMobile: String = ""
+    var currentUserRole: String = "fisher"
+    var currentBusinessName: String = ""
+    var isBuyer: Bool { currentUserRole == "buyer" }
+    /// Set by the admin in the cloud after checking a buyer's permit or ID.
+    var currentUserVerified = false
 
     // Login form
     var loginMobile: String = ""
@@ -60,11 +65,18 @@ final class AppState {
     var regLanding = ""
     var regFID = ""
     var regPassword = ""
+    var regRole = "fisher"
+    var regBusiness = ""
     var registerError: String?
 
     // Misc UI
     var isOffline = false
     var showNotifs = false
+    var showWelcomeTour = false
+    /// Why the last upload failed, shown on the Connectivity page. Nil when the last sync worked.
+    var lastSyncError: String?
+    /// Bumped when cloud fair prices arrive, so screens showing prices redraw.
+    var pricesVersion = 0
     var errorMessage: String?
     var historyFilter = "All"
 
@@ -73,15 +85,15 @@ final class AppState {
     var lcStep = 1
     var lcSpecies: String?
     var lcWeight: String = ""
-    var lcGround: String = "Sabang Fishing Ground"
-    var lcPhoto = false
+    var lcGround: String = ""
+    var lcPhoto: Data?
     var lcDate = Date()
 
     // Active records / flows
     var activeCatchID: UUID?
     var listPrice: String = ""
     var listingQty: String = ""
-    var listingLocation: String = "Sabang Landing Site, Batangas"
+    var listingLocation: String = ""
     var listingPickup: String = "Today, after 3:00 PM"
     var listingNotes: String = ""
     var selectedBuyer: Buyer?
@@ -90,6 +102,8 @@ final class AppState {
     var marketListings: [OtherListing] = []
     var marketIsSample = true
     var marketSearch = ""
+    var myOffers: [Offer] = []
+    var payingOfferID: UUID?
 
     // Advisor
     var advisorSuggestionsUsed: Set<Int> = []
@@ -98,8 +112,8 @@ final class AppState {
         lcStep = 1
         lcSpecies = nil
         lcWeight = ""
-        lcGround = "Sabang Fishing Ground"
-        lcPhoto = false
+        lcGround = currentUserLandingSite
+        lcPhoto = nil
         lcDate = Date()
     }
 
@@ -113,7 +127,11 @@ final class AppState {
         path = NavigationPath()
     }
 
+    /// Account to open automatically on the next launch ("Keep me logged in").
+    static let rememberedUserKey = "rememberedUserID"
+
     func logout() {
+        UserDefaults.standard.removeObject(forKey: Self.rememberedUserKey)
         SupabaseClient.shared.signOut()
         phase = .onboarding
         obStep = 0
@@ -121,6 +139,11 @@ final class AppState {
         path = NavigationPath()
         currentUserID = nil
         currentUserName = ""
+        currentUserRole = "fisher"
+        currentBusinessName = ""
+        currentUserVerified = false
+        marketListings = []
+        myOffers = []
     }
 
     func applyUser(_ user: UserAccount) {
@@ -128,10 +151,22 @@ final class AppState {
         currentUserName = user.fullName
         currentUserMunicipality = user.municipality
         currentUserProvince = user.province
-        currentUserLandingSite = user.landingSite.isEmpty ? "Sabang Landing Site" : user.landingSite
+        FairPriceService.homeProvince = user.province
+        currentUserLandingSite = user.landingSite
         currentUserFID = user.fisherfolkID
         currentUserMobile = user.mobile
+        currentUserRole = user.role
+        currentBusinessName = user.businessName
+        tab = user.isBuyer ? .market : .home
         listingLocation = "\(currentUserLandingSite)\(currentUserProvince.isEmpty ? "" : ", \(currentUserProvince)")"
+    }
+
+    /// "Dalahican Landing Site · Lucena City", built only from what the user entered.
+    var currentUserPlace: String {
+        let area = currentUserMunicipality.isEmpty
+            ? (currentUserProvince.split(separator: ",").first.map(String.init) ?? "")
+            : currentUserMunicipality
+        return [currentUserLandingSite, area].filter { !$0.isEmpty }.joined(separator: " · ")
     }
 
     var userInitials: String {

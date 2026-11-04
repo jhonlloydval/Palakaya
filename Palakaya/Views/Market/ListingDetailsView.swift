@@ -6,6 +6,9 @@ struct ListingDetailsView: View {
     @Environment(AppState.self) private var appState
     @Query private var catches: [CatchRecord]
     private var record: CatchRecord? { catches.first { $0.id == catchID } }
+    private var offerCount: Int {
+        OfferController.isAvailable ? OfferController.pendingOffers(for: catchID, in: appState.myOffers).count : BUYERS.count
+    }
 
     var body: some View {
         @Bindable var appState = appState
@@ -14,10 +17,7 @@ struct ListingDetailsView: View {
             let total = Int(c.weight * (c.price ?? 0))
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 18).fill(Color.pkSurface2).frame(height: 144)
-                        Image(systemName: "water.waves").font(.system(size: 36)).foregroundColor(.pkAqua)
-                    }.padding(.bottom, 16)
+                    CatchPhotoBanner(photo: c.photoData).padding(.bottom, 16)
 
                     Text(c.species).font(.system(size: 22, weight: .bold))
                     Text("\(c.weight.pkTrimmed) kg available").font(.system(size: 13)).foregroundColor(.pkSub).padding(.bottom, 12)
@@ -63,13 +63,14 @@ struct ListingDetailsView: View {
                         .padding(.bottom, 24)
                     }
 
-                    PrimaryButton(title: "\(c.buyersInterested ?? 2) Buyers Interested") {
+                    PrimaryButton(title: offerCount == 0 ? "View Offers" : "\(offerCount) \(offerCount == 1 ? "Offer" : "Offers") Waiting") {
                         appState.path.append(Route.buyerMatches(c.id))
                     }
                 }
                 .padding(.horizontal, 20).padding(.bottom, 28)
             }
             .background(Color.pkBg)
+            .task { await OfferController.refresh(appState: appState) }
             .navigationTitle("Listing")
             .navigationBarTitleDisplayMode(.inline)
         }

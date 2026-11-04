@@ -7,11 +7,13 @@ struct RecordSaleView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var catches: [CatchRecord]
     private var record: CatchRecord? { catches.first { $0.id == catchID } }
+    @State private var isSaving = false
 
     var body: some View {
         @Bindable var appState = appState
         if let c = record, let b = appState.selectedBuyer {
-            let total = Int(c.weight * Double(b.offer))
+            let quantity = b.quantity ?? c.weight
+            let total = Int(quantity * Double(b.offer))
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     infoRow("Catch", "\(c.species) · \(c.weight.pkTrimmed) kg")
@@ -19,7 +21,7 @@ struct RecordSaleView: View {
 
                     HStack(spacing: 12) {
                         detailBox("Agreed Price", "₱\(b.offer)/kg")
-                        detailBox("Quantity Sold", "\(c.weight.pkTrimmed) kg")
+                        detailBox("Quantity Sold", "\(quantity.pkTrimmed) kg")
                     }
                     .padding(.bottom, 16)
 
@@ -33,25 +35,45 @@ struct RecordSaleView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 18))
                     .padding(.bottom, 24)
 
-                    InfoBox(text: "Palakaya does not handle payments. Confirm payment and pickup arrangements directly with the buyer.")
+                    InfoBox(text: b.offerID != nil
+                            ? "The buyer pays in the app (GCash, Maya or LandBank, demo). You'll get a notification once paid."
+                            : "Confirm payment and pickup arrangements directly with the buyer.")
                         .padding(.bottom, 24)
 
                     PrimaryButton(title: "Complete Sale") {
-                        do {
-                            appState.saleResult = try CatchController(context: modelContext).completeSale(c, buyer: b)
-                            Task { await SyncController.sync(appState: appState, context: modelContext) }
-                        } catch {
-                            appState.errorMessage = "Your sale could not be recorded. Please try again."
-                            return
-                        }
-                        appState.path.append(Route.saleRecorded)
+                        complete(c, buyer: b)
                     }
+                    .disabled(isSaving)
                 }
                 .padding(.horizontal, 20).padding(.bottom, 28)
             }
             .background(Color.pkBg)
             .navigationTitle("Record Sale")
             .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    /// Accepts the buyer's real offer (if any) in the cloud, then records the sale on the phone.
+    private func complete(_ c: CatchRecord, buyer b: Buyer) {
+        isSaving = true
+        Task {
+            defer { isSaving = false }
+            if let offerID = b.offerID, let offer = appState.myOffers.first(where: { $0.id == offerID }) {
+                do {
+                    try await OfferController.respond(to: offer, accept: true, appState: appState)
+                } catch {
+                    appState.errorMessage = error.localizedDescription
+                    return
+                }
+            }
+            do {
+                appState.saleResult = try CatchController(context: modelContext).completeSale(c, buyer: b)
+            } catch {
+                appState.errorMessage = "Your sale could not be recorded. Please try again."
+                return
+            }
+            await SyncController.sync(appState: appState, context: modelContext)
+            appState.path.append(Route.saleRecorded)
         }
     }
 

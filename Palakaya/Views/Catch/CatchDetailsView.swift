@@ -5,6 +5,7 @@ struct CatchDetailsView: View {
     var catchID: UUID
     @Environment(AppState.self) private var appState
     @Query private var catches: [CatchRecord]
+    @State private var showEdit = false
 
     private var record: CatchRecord? { catches.first { $0.id == catchID } }
 
@@ -13,11 +14,7 @@ struct CatchDetailsView: View {
         ScrollView {
             if let c = record {
                 VStack(alignment: .leading, spacing: 0) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 18).fill(Color.pkSurface2).frame(height: 144)
-                        Image(systemName: "water.waves").font(.system(size: 36)).foregroundColor(.pkAqua)
-                    }
-                    .padding(.bottom, 16)
+                    CatchPhotoBanner(photo: c.photoData).padding(.bottom, 16)
 
                     Text(c.species).font(.system(size: 22, weight: .bold))
                     Text("Catch ID: \(c.id.uuidString.prefix(8).uppercased())").font(.system(size: 13)).foregroundColor(.pkSub).padding(.bottom, 16)
@@ -71,13 +68,16 @@ struct CatchDetailsView: View {
                             appState.listingQty = "\(c.weight.pkTrimmed) kg"
                             appState.path.append(Route.createListing(c.id))
                         }
-                        GhostButton(title: "Edit Record") {}.padding(.top, 12)
+                        GhostButton(title: "Edit Record", systemImage: "pencil") { showEdit = true }.padding(.top, 12)
                     }
                 }
                 .padding(.horizontal, 20).padding(.bottom, 28)
             }
         }
         .background(Color.pkBg)
+        .sheet(isPresented: $showEdit) {
+            if let c = record { EditCatchView(record: c) }
+        }
         .navigationTitle("Catch Details")
         .navigationBarTitleDisplayMode(.inline)
     }

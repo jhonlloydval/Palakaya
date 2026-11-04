@@ -12,8 +12,13 @@ final class UserAccount {
     var landingSite: String
     var fisherfolkID: String
     var createdAt: Date
+    /// "fisher" or "buyer".
+    var role: String = "fisher"
+    /// Store, stall or cooperative name (buyers only).
+    var businessName: String = ""
 
-    init(fullName: String, mobile: String, password: String, municipality: String, province: String, landingSite: String, fisherfolkID: String) {
+    init(fullName: String, mobile: String, password: String, municipality: String, province: String, landingSite: String,
+         fisherfolkID: String, role: String = "fisher", businessName: String = "") {
         self.id = UUID()
         self.fullName = fullName
         self.mobile = mobile
@@ -23,7 +28,11 @@ final class UserAccount {
         self.landingSite = landingSite
         self.fisherfolkID = fisherfolkID
         self.createdAt = Date()
+        self.role = role
+        self.businessName = businessName
     }
+
+    var isBuyer: Bool { role == "buyer" }
 
     func verifyPassword(_ attempt: String) -> Bool {
         passwordHash == PasswordHasher.hash(attempt, salt: mobile)

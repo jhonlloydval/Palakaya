@@ -8,21 +8,31 @@ struct MainTabView: View {
         @Bindable var appState = appState
         NavigationStack(path: $appState.path) {
             tabRoot
+                // Inset the tab root itself (not the stack) so its scroll view can reach content under the tab bar.
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    CustomTabBar()
+                }
+                // Blurs content that scrolls up under the status bar.
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    Color.clear.frame(height: 0).background(.bar)
+                }
                 .navigationDestination(for: Route.self) { route in
                     destination(for: route)
                 }
         }
-        .safeAreaInset(edge: .bottom) {
-            if appState.path.isEmpty {
-                CustomTabBar()
-            }
+        .fullScreenCover(isPresented: $appState.showWelcomeTour) {
+            WelcomeTourView()
         }
         .sheet(isPresented: $appState.showLogCatch) {
             LogCatchFlowView()
         }
+        .sheet(item: payingOffer) { offer in
+            PaymentFlowView(offer: offer)
+        }
         .sheet(isPresented: $appState.showNotifs) {
             NotificationsSheetView()
-                .presentationDetents([.fraction(0.7)])
+                .presentationDetents([.fraction(0.7), .large])
+                .presentationBackground(Color.pkBg)
                 .presentationDragIndicator(.visible)
         }
         .tint(.pkDark)
@@ -36,7 +46,16 @@ struct MainTabView: View {
         case .market: MarketView()
         case .advisor: AdvisorView()
         case .profile: ProfileView()
+        case .offers: BuyerOffersView()
         }
+    }
+
+    /// The accepted offer the buyer chose to pay, if any.
+    private var payingOffer: Binding<Offer?> {
+        Binding(
+            get: { appState.myOffers.first { $0.id == appState.payingOfferID } },
+            set: { if $0 == nil { appState.payingOfferID = nil } }
+        )
     }
 
     @ViewBuilder
@@ -59,13 +78,23 @@ struct MainTabView: View {
 struct CustomTabBar: View {
     @Environment(AppState.self) private var appState
 
-    private let tabs: [(AppTab, String, String)] = [
-        (.home, "Home", "house.fill"),
-        (.catchTab, "Catch", "water.waves"),
-        (.market, "Market", "storefront.fill"),
-        (.advisor, "Advisor", "sparkles"),
-        (.profile, "Profile", "person.fill"),
-    ]
+    private var tabs: [(AppTab, String, String)] {
+        if appState.isBuyer {
+            return [
+                (.market, "Buy", "storefront.fill"),
+                (.offers, "My Offers", "tag.fill"),
+                (.advisor, "Advisor", "sparkles"),
+                (.profile, "Profile", "person.fill"),
+            ]
+        }
+        return [
+            (.home, "Home", "house.fill"),
+            (.catchTab, "Catch", "water.waves"),
+            (.market, "Market", "storefront.fill"),
+            (.advisor, "Advisor", "sparkles"),
+            (.profile, "Profile", "person.fill"),
+        ]
+    }
 
     var body: some View {
         HStack {

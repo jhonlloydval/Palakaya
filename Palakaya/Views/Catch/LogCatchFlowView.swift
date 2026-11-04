@@ -62,14 +62,43 @@ struct LogCatchFlowView: View {
                     speciesGrid(ALL_SPECIES.filter { !RECENT_SPECIES.contains($0) }, other: true)
                 } else {
                     let matches = ALL_SPECIES.filter { $0.localizedCaseInsensitiveContains(search) }
-                    if matches.isEmpty {
-                        Text("No species found. Try another spelling.").font(.system(size: 13)).foregroundColor(.pkSub)
-                    } else {
+                    if !matches.isEmpty {
                         speciesGrid(matches, other: false)
+                            .padding(.bottom, 12)
+                    }
+                    if let custom = customSpecies, !ALL_SPECIES.contains(where: { $0.caseInsensitiveCompare(custom) == .orderedSame }) {
+                        Button {
+                            appState.lcSpecies = custom
+                            appState.lcStep = 2
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "plus.circle.fill").font(.system(size: 22)).foregroundColor(.pkDark)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Use \"\(custom)\"").font(.system(size: 16, weight: .semibold)).foregroundColor(.pkText)
+                                    Text("Not on the list? Log it with this name. There's no fair price for it yet.")
+                                        .font(.system(size: 13)).foregroundColor(.pkSub)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                Spacer(minLength: 0)
+                            }
+                            .padding(16)
+                            .background(Color.pkSurface)
+                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.pkBorder))
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
         }
+    }
+
+    /// The typed name, tidied ("  lapu-lapu " becomes "Lapu-lapu"), if it looks like a real name.
+    private var customSpecies: String? {
+        let name = search.trimmingCharacters(in: .whitespacesAndNewlines)
+            .split(separator: " ").joined(separator: " ")
+        guard name.count >= 2, name.count <= 40, name.contains(where: \.isLetter) else { return nil }
+        return name.prefix(1).uppercased() + name.dropFirst()
     }
 
     private func speciesGrid(_ species: [String], other: Bool) -> some View {
@@ -121,19 +150,8 @@ struct LogCatchFlowView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .pkField("Date & Time")
 
-                Button {
-                    appState.lcPhoto.toggle()
-                } label: {
-                    VStack(spacing: 8) {
-                        Image(systemName: "camera").font(.system(size: 20)).foregroundColor(.pkSub)
-                        Text(appState.lcPhoto ? "Photo added" : "Tap to add a photo").font(.system(size: 12.5)).foregroundColor(.pkSub)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(24)
-                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [6])).foregroundColor(Color.pkBorder))
-                }
-                .buttonStyle(.plain)
-                .pkField("Photo of Catch (optional)")
+                CatchPhotoPicker(photo: $appState.lcPhoto)
+                    .pkField("Photo of Catch (optional)")
 
                 PrimaryButton(title: "Review Catch", isDisabled: InputParsing.weightKg(appState.lcWeight) == nil) {
                     appState.lcStep = 3
@@ -189,7 +207,7 @@ struct LogCatchFlowView: View {
         do {
             record = try CatchController(context: modelContext)
                 .saveCatch(ownerID: appState.currentUserID, species: species, weight: weight, ground: appState.lcGround,
-                           date: appState.lcDate, hasPhoto: appState.lcPhoto)
+                           date: appState.lcDate, photo: appState.lcPhoto)
         } catch {
             appState.errorMessage = "Your catch could not be saved. Please try again."
             return

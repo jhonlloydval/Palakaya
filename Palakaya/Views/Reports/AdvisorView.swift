@@ -18,7 +18,7 @@ struct AdvisorView: View {
                     Image(systemName: "sparkles").foregroundColor(.pkDark)
                     Text("Palakaya Advisor").font(.system(size: 20, weight: .bold))
                 }
-                Text("Catch and market guidance based on your records.").font(.system(size: 13)).foregroundColor(.pkSub)
+                Text(appState.isBuyer ? "Ask about fish prices, fair offers and buying. You can type in English or Filipino." : "Ask about your catch, fish prices and selling. You can type in English or Filipino.").font(.system(size: 13)).foregroundColor(.pkSub)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
@@ -33,7 +33,10 @@ struct AdvisorView: View {
                         if isThinking {
                             HStack(spacing: 8) {
                                 ProgressView()
-                                Text("Nag-iisip…").font(.system(size: 13)).foregroundColor(.pkSub)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Thinking…").font(.system(size: 13)).foregroundColor(.pkSub)
+                                    Text("Answers can take up to a minute.").font(.system(size: 12)).foregroundColor(.pkSub)
+                                }
                             }
                             .padding(.horizontal, 16).padding(.vertical, 12)
                             .background(Color.pkSurface2)
@@ -55,7 +58,7 @@ struct AdvisorView: View {
                 if messages.count <= 2 {
                 LabelCaps(text: "Suggested")
                 VStack(spacing: 8) {
-                    ForEach(Array(ADVISOR_SUGGESTIONS.enumerated()), id: \.offset) { _, s in
+                    ForEach(Array((appState.isBuyer ? BUYER_ADVISOR_SUGGESTIONS : ADVISOR_SUGGESTIONS).enumerated()), id: \.offset) { _, s in
                         Button {
                             ask(s)
                         } label: {
@@ -73,9 +76,11 @@ struct AdvisorView: View {
                 }
 
                 HStack(spacing: 8) {
-                    TextField("Magtanong tungkol sa huli o presyo…", text: $draft, axis: .vertical)
+                    TextField(appState.isBuyer ? "Ask about fish prices or buying…" : "Ask about your catch or fish prices…", text: $draft, axis: .vertical)
                         .font(.system(size: 16))
                         .lineLimit(1...4)
+                        // English autocorrect mangles Filipino and fish names ("tulingan" → "ruling an").
+                        .autocorrectionDisabled()
                         .padding(.horizontal, 14).padding(.vertical, 12)
                         .frame(minHeight: 48)
                         .background(Color.pkSurface)

@@ -7,7 +7,7 @@ import SwiftData
 enum SyncService {
     private struct ProfileRow: Encodable {
         let id: String
-        let full_name, mobile, municipality, province, landing_site, fisherfolk_id: String
+        let full_name, mobile, municipality, province, landing_site, fisherfolk_id, role, business_name: String
     }
 
     private struct CatchRow: Codable {
@@ -21,6 +21,31 @@ enum SyncService {
         let sale_amount: Double?
         let buyer_name: String?
         let alignment_pct: Int?
+        var photo_url: String? = nil
+        /// False until the database has the `photo_url` column (migration 006).
+        var sendsPhoto = true
+
+        private enum CodingKeys: String, CodingKey {
+            case id, species, weight_kg, fishing_ground, caught_at, status, price_per_kg, sale_amount
+            case buyer_name, alignment_pct, photo_url
+        }
+
+        /// Writes every key on every row, with null for missing values: the database rejects a batch
+        /// whose rows have different keys ("All object keys must match").
+        func encode(to encoder: Encoder) throws {
+            var c = encoder.container(keyedBy: CodingKeys.self)
+            try c.encode(id, forKey: .id)
+            try c.encode(species, forKey: .species)
+            try c.encode(weight_kg, forKey: .weight_kg)
+            try c.encode(fishing_ground, forKey: .fishing_ground)
+            try c.encode(caught_at, forKey: .caught_at)
+            try c.encode(status, forKey: .status)
+            try c.encode(price_per_kg, forKey: .price_per_kg)
+            try c.encode(sale_amount, forKey: .sale_amount)
+            try c.encode(buyer_name, forKey: .buyer_name)
+            try c.encode(alignment_pct, forKey: .alignment_pct)
+            if sendsPhoto { try c.encode(photo_url, forKey: .photo_url) }
+        }
     }
 
     /// Signs in to the cloud, creating the cloud account the first time. Local login has already succeeded.
@@ -35,7 +60,44 @@ enum SyncService {
         guard let id = client.userID else { throw CloudError.notSignedIn }
         try await client.upsert("profiles", rows: [ProfileRow(
             id: id, full_name: user.fullName, mobile: user.mobile, municipality: user.municipality,
-            province: user.province, landing_site: user.landingSite, fisherfolk_id: user.fisherfolkID)])
+            province: user.province, landing_site: user.landingSite, fisherfolk_id: user.fisherfolkID,
+            role: user.role, business_name: user.businessName)])
+    }
+
+    /// Uploads profile edits made in Profile. Does nothing when signed out; the next login uploads them.
+    static func pushProfile(_ user: UserAccount) async throws {
+        let client = SupabaseClient.shared
+        guard AppConfig.isCloudEnabled, let id = client.userID else { return }
+        try await client.upsert("profiles", rows: [ProfileRow(
+            id: id, full_name: user.fullName, mobile: user.mobile, municipality: user.municipality,
+            province: user.province, landing_site: user.landingSite, fisherfolk_id: user.fisherfolkID,
+            role: user.role, business_name: user.businessName)])
+    }
+
+    /// Whether the admin has verified this account (buyers get a Verified badge).
+    static func isVerified() async -> Bool {
+        struct Row: Decodable { let verified: Bool }
+        let rows: [Row]? = try? await SupabaseClient.shared.select("my_profile", query: "select=verified")
+        return rows?.first?.verified ?? false
+    }
+
+    /// Uploads photos that are not online yet. A failed upload is retried on the next sync and never blocks the rest.
+    private static func uploadPhotos(_ records: [CatchRecord]) async {
+        guard let owner = SupabaseClient.shared.userID?.lowercased() else { return }
+        for record in records where record.photoURL == nil {
+            guard let data = record.photoData else { continue }
+            let path = "\(owner)/\(record.id.uuidString.lowercased()).jpg"
+            record.photoURL = try? await SupabaseClient.shared.uploadPublicJPEG(data, bucket: "catch-photos", path: path)
+        }
+    }
+
+    private static let deletesKey = "pendingCatchDeletes"
+
+    /// Catches deleted on this phone that the cloud still has. They are deleted there on the next sync
+    /// and are never downloaded again in the meantime.
+    static var pendingDeletes: Set<UUID> {
+        get { Set((UserDefaults.standard.stringArray(forKey: deletesKey) ?? []).compactMap(UUID.init)) }
+        set { UserDefaults.standard.set(newValue.map(\.uuidString), forKey: deletesKey) }
     }
 
     /// Downloads this account's catches so a reinstall or new phone gets them back.
@@ -49,7 +111,8 @@ enum SyncService {
         let byID = Dictionary(local.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
 
         var added = 0
-        for row in rows {
+        let deleted = pendingDeletes
+        for row in rows where !deleted.contains(row.id) {
             let record: CatchRecord
             if let existing = byID[row.id] {
                 guard !existing.needsSync else { continue }
@@ -79,15 +142,28 @@ enum SyncService {
         guard AppConfig.isCloudEnabled else { throw CloudError.notConfigured }
         guard SupabaseClient.shared.isSignedIn else { throw CloudError.notSignedIn }
 
+        let samples = DemoController.sampleIDs
         let pending = try context.fetch(FetchDescriptor<CatchRecord>(predicate: #Predicate { $0.needsSync }))
+            .filter { !samples.contains($0.id) }
+        await uploadPhotos(pending)
         let rows = pending.map {
             CatchRow(id: $0.id, species: $0.species, weight_kg: $0.weight, fishing_ground: $0.ground,
                      caught_at: $0.dateLogged, status: $0.statusRaw, price_per_kg: $0.price,
-                     sale_amount: $0.saleAmount, buyer_name: $0.buyerName, alignment_pct: $0.alignment)
+                     sale_amount: $0.saleAmount, buyer_name: $0.buyerName, alignment_pct: $0.alignment,
+                     photo_url: $0.photoURL)
         }
-        try await SupabaseClient.shared.upsert("catches", rows: rows)
+        do {
+            try await SupabaseClient.shared.upsert("catches", rows: rows)
+        } catch CloudError.server(let code, let message) where code == 400 && message.contains("photo_url") {
+            // The database has not run migration 006 yet: upload without photos.
+            try await SupabaseClient.shared.upsert("catches", rows: rows.map { var r = $0; r.sendsPhoto = false; return r })
+        }
         pending.forEach { $0.needsSync = false }
         try context.save()
+        for id in pendingDeletes {
+            try await SupabaseClient.shared.delete("catches", id: id)
+            pendingDeletes.remove(id)
+        }
         return pending.count
     }
 }

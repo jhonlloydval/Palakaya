@@ -4,12 +4,27 @@ import SwiftData
 struct ProfileView: View {
     @Environment(AppState.self) private var appState
     @Query private var allCatches: [CatchRecord]
+    @AppStorage("appearance") private var appearance = "system"
     private var catches: [CatchRecord] { allCatches.owned(by: appState.currentUserID) }
 
     private var totalKg: Double { catches.reduce(0) { $0 + $1.weight } }
     private var sales: Int { catches.filter { $0.status == .sold }.count }
 
-    private let rows: [(String, String, Route?)] = [
+    private var buyerOffers: [Offer] { appState.myOffers.filter(\.iAmBuyer) }
+
+    private let buyerRows: [(String, String, Route?)] = [
+        ("person.fill", "Personal Information", .profileInfo(.personal)),
+        ("checkmark.seal.fill", "Buyer Verification", .profileInfo(.verification)),
+        ("wifi", "Connectivity & Offline Data", .profileInfo(.connectivity)),
+        ("lock.fill", "Privacy", .profileInfo(.privacy)),
+        ("questionmark.circle.fill", "Help Center", .profileInfo(.help)),
+        ("info.circle.fill", "About Palakaya", .profileInfo(.about)),
+        ("wand.and.stars", "Demo Tools", .profileInfo(.demo)),
+    ]
+
+    private var rows: [(String, String, Route?)] { appState.isBuyer ? buyerRows : fisherRows }
+
+    private let fisherRows: [(String, String, Route?)] = [
         ("person.fill", "Personal Information", .profileInfo(.personal)),
         ("water.waves", "Fisherfolk Details", .profileInfo(.fisherfolk)),
         ("mappin.circle.fill", "Landing Site", .profileInfo(.landing)),
@@ -18,6 +33,7 @@ struct ProfileView: View {
         ("lock.fill", "Privacy", .profileInfo(.privacy)),
         ("questionmark.circle.fill", "Help Center", .profileInfo(.help)),
         ("info.circle.fill", "About Palakaya", .profileInfo(.about)),
+        ("wand.and.stars", "Demo Tools", .profileInfo(.demo)),
     ]
 
     var body: some View {
@@ -32,12 +48,22 @@ struct ProfileView: View {
                     HStack(spacing: 4) {
                         Text(appState.currentUserName.isEmpty ? "Fisher" : appState.currentUserName)
                             .font(.system(size: 18, weight: .bold))
-                        Image(systemName: "checkmark.seal.fill").font(.system(size: 14)).foregroundColor(.pkDark)
+                        if appState.isBuyer ? appState.currentUserVerified : !appState.currentUserFID.isEmpty {
+                            Image(systemName: "checkmark.seal.fill").font(.system(size: 14)).foregroundColor(.pkDark)
+                        }
                     }
-                    Text(appState.currentUserFID.isEmpty ? "Municipal Fisher" : "Registered Municipal Fisher").font(.system(size: 13)).foregroundColor(.pkSub)
+                    if appState.isBuyer {
+                        Text(appState.currentBusinessName).font(.system(size: 13, weight: .semibold)).foregroundColor(.pkText)
+                        Text(appState.currentUserVerified ? "Verified Buyer" : "Buyer · verification pending")
+                            .font(.system(size: 13)).foregroundColor(appState.currentUserVerified ? .pkSuccess : .pkWarning)
+                    } else {
+                        Text(appState.currentUserFID.isEmpty ? "Municipal Fisher" : "Registered Municipal Fisher").font(.system(size: 13)).foregroundColor(.pkSub)
+                    }
                     HStack(spacing: 4) {
                         Image(systemName: "mappin.circle.fill").font(.system(size: 11)).foregroundColor(.pkSub)
-                        Text(appState.currentUserLandingSite.isEmpty ? "Sabang Landing Site, Batangas" : "\(appState.currentUserLandingSite), \(appState.currentUserProvince)")
+                        Text(appState.isBuyer
+                             ? [appState.currentUserMunicipality, appState.currentUserProvince].filter { !$0.isEmpty }.joined(separator: ", ")
+                             : [appState.currentUserLandingSite, appState.currentUserMunicipality, appState.currentUserProvince].filter { !$0.isEmpty }.joined(separator: ", "))
                             .font(.system(size: 12.5)).foregroundColor(.pkSub)
                     }
                 }
@@ -45,14 +71,38 @@ struct ProfileView: View {
                 .padding(.bottom, 20)
 
                 HStack(spacing: 0) {
-                    StatBox(label: "Caught", value: "\(Int(totalKg))kg")
-                    Divider().overlay(Color.pkBorder)
-                    StatBox(label: "Sales", value: "\(sales)")
+                    if appState.isBuyer {
+                        StatBox(label: "Offers", value: "\(buyerOffers.count)")
+                        Divider().overlay(Color.pkBorder)
+                        StatBox(label: "Purchases", value: "\(buyerOffers.filter { $0.status == .paid }.count)")
+                    } else {
+                        StatBox(label: "Caught", value: "\(totalKg.pkTrimmed) kg")
+                        Divider().overlay(Color.pkBorder)
+                        StatBox(label: "Sales", value: "\(sales)")
+                    }
                 }
                 .padding(16)
                 .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.pkBorder))
                 .clipShape(RoundedRectangle(cornerRadius: 18))
                 .padding(.bottom, 20)
+
+                HStack(spacing: 12) {
+                    Image(systemName: "circle.lefthalf.filled").font(.system(size: 16)).foregroundColor(.pkDark).frame(width: 20)
+                    Text("Appearance").font(.system(size: 14, weight: .medium)).foregroundColor(.pkText)
+                        .lineLimit(1).fixedSize()
+                    Spacer()
+                    Picker("Appearance", selection: $appearance) {
+                        Text("Auto").tag("system")
+                        Text("Light").tag("light")
+                        Text("Dark").tag("dark")
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 180)
+                }
+                .padding(.horizontal, 16).padding(.vertical, 12)
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.pkBorder))
+                .clipShape(RoundedRectangle(cornerRadius: 18))
+                .padding(.bottom, 16)
 
                 VStack(spacing: 0) {
                     ForEach(Array(rows.enumerated()), id: \.offset) { i, row in

@@ -128,7 +128,7 @@ Palakaya closes the gap on both ends:
 
 ## Core Features
 
-Palakaya's operational structure is built around nine interlocking processes, moving a fisher from a landed catch to a documented, price-checked sale.
+Palakaya's operational structure is built around nine interlocking processes, moving a fisher from a landed catch to a documented, price-checked sale. A complete screen-by-screen guide, the finals changelog and the build steps are in [`docs/Palakaya-Guide.md`](docs/Palakaya-Guide.md).
 
 ### 1. Fisher Profile & Registration
 
@@ -139,7 +139,9 @@ Palakaya's operational structure is built around nine interlocking processes, mo
 <br/>
 
 - Sign-up captures full name, mobile number, landing site, municipality, and province — used to localize fair-price benchmarks and buyer matches.
-- Mobile number + password sign-in, built for low-friction return visits.
+- Mobile number + password sign-in, built for low-friction return visits, with **Keep me logged in** so the app opens straight to Home.
+- Strong passwords are required (8+ characters with upper- and lowercase letters and a number), with a live checklist while typing.
+- A five-step photo onboarding introduces the app, and a short, skippable welcome tour follows sign-up.
 - One profile carries a fisher's full catch and sale history across sessions; an optional Fisherfolk ID field allows a profile to double as a documented catch-and-income record over time.
 
 ### 2. Digital Catch Logging
@@ -151,6 +153,10 @@ Palakaya's operational structure is built around nine interlocking processes, mo
 <br/>
 
 A fisher logs species, weight, fishing ground, and date/time the moment they land — building a running, verifiable catch history tied to their profile, with an offline fallback for low-signal landing sites.
+
+- Any fish can be logged: search the list, or type a species that isn't on it.
+- An optional **photo** from the camera or gallery. It shows on the catch, and on the listing for buyers once uploaded.
+- Catches can be **edited or deleted** later; deletes also reach the cloud on the next sync.
 
 ### 3. My Catch
 
@@ -175,6 +181,7 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 - A rolling reference range per species, computed in the cloud from **real recorded sales in the last 30 days**: the middle 50% of sold prices (25th–75th percentile), with the median as the midpoint.
 - A species gets a live range only once it has **at least 5 sales**, so no single fisher's price can be singled out. Until then the app shows a built-in regional **estimate** and labels it that way.
 - Shown as a **range, not a single guess**, before the fisher ever agrees to sell. For example: "Fair price from 7 recent sales: ₱180–₱205/kg".
+- **Per province:** the Fair Prices screen lets anyone pick a province. The fisher's own province is used first, then all Palakaya sales, then the estimate, and the screen always says which one it is showing, with a confidence level.
 
 ### 5. Marketplace Listing & Buyer Matching
 
@@ -187,6 +194,7 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 - A fisher lists landed catch directly to verified vendors, retailers, and cooperatives — bypassing consignacion.
 - Listings are matched by species, quantity, and proximity to the fisher's landing site.
 - Offers are flagged **"within benchmark"** or **"below fair price"**; buyer verification status and ratings are visible up front.
+- Listings can be searched by fish, seller or place and sorted by newest, lowest price, fair price first or most kilos. The fisher can call or text a buyer straight from the offer.
 
 ### 6. Transaction Recording & Price-Alignment Scoring
 
@@ -213,6 +221,7 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 - Replies in the language the fisher writes in (Filipino, English, or Taglish), in 2–5 plain sentences. The Advisor says when a price is only an estimate and never invents prices, buyers, weather, or rules.
 - **Free to run.** It uses Google Gemini's free tier through a Supabase Edge Function, so the AI key stays on the server and never ships in the app. Only signed-in fishers can use it.
 - **Offline fallback.** With no signal, or when the free limit is reached, a built-in rule-based advisor answers from the same on-device data.
+- **Guardrails.** It only answers fishing, catch, price, selling and app questions; it politely declines anything else, refuses to help with illegal fishing (blast, poison, fine-mesh nets, protected species), points to PAGASA, the Coast Guard and BFAR for safety and legal matters, never asks for money, PINs or IDs, and ignores attempts to change its rules.
 
 ### 8. Catch & Income Reports
 
@@ -225,11 +234,25 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 - Consolidates a fisher's catch history, transaction log, and price-alignment trend into a savable, exportable personal report — monthly totals, average price alignment, and top species.
 - Exportable and shareable on demand; the same records roll up into the BFAR/LGU aggregate reporting layer.
 
-### 9. Buyer Verification *(planned)*
+### 9. Buyer Accounts, Offers & Verification
 
-- Verifies buyer registration details (vendor / retailer / cooperative status).
-- Surfaces buyer ratings and transaction history to fishers before a listing is agreed.
-- Flags buyer accounts associated with repeated below-benchmark offers.
+- Anyone can register as a **buyer** (stall, retailer, carinderia or cooperative), browse fresh listings, and send a price offer with a quantity and a message.
+- The fisher sees every offer side by side: buyer name, a **Verified** badge, number of paid purchases, and whether the offer is within the fair price. They accept one or decline.
+- **Verification is done by a person, not the app.** An admin turns on the badge in Supabase after checking a business permit, cooperative registration or ID. The app itself can never set it.
+- Once accepted, the buyer pays in the app through a **demo checkout** (GCash, Maya or LandBank) that mirrors the real steps (account number, one-time code, PIN, confirmation, receipt with a reference number) but moves no money. The fisher is notified when payment arrives.
+
+### 10. Sea Today (weather and sea conditions)
+
+- A Home card with today's temperature, sky, wave height, wind and chance of rain for the fisher's own town, from the free [Open-Meteo](https://open-meteo.com) forecast and marine APIs (no key needed).
+- Turned into a plain guide for small boats: **Good to go**, **Be careful** or **Stay ashore**. The card's sky follows the conditions, its waves move with the real wave forecast, and a sunrise-to-sunset track shows the time of day.
+- Compact by default; tap to open the full forecast. It always reminds fishers to follow PAGASA gale warnings and the Coast Guard.
+
+### Profile, settings and demo tools
+
+- Editable personal details, FishR ID and home port, a password change, live sync status with **Sync now**, and full Privacy, Help (FAQ) and About pages.
+- **Appearance:** Auto, Light or Dark. Every screen has a complete Dark Mode in a deep night-sea navy.
+- **Notifications** are built from real activity and open the related screen when tapped.
+- **Demo Tools:** fill an account with sample catches that never upload, and replay the intro or welcome tour.
 
 ### Low-Bandwidth / Offline Entry
 
@@ -249,14 +272,23 @@ What works in this build:
 | Fair-price benchmark | ✅ Working: from real cloud sales (≥ 5), otherwise a labelled estimate |
 | Create listing, with a warning when priced below the benchmark | ✅ Working |
 | Marketplace of other fishers' listings, with search and Call / Text | ✅ Working, from the cloud |
-| Buyer matches and record sale with price-alignment score | ✅ Working (buyer offers are sample buyers in this build) |
-| AI Advisor | ✅ Working: Google Gemini (free) with offline fallback |
-| Notifications | ✅ Built from real sales, listings, sync status, and price updates |
+| Buyer accounts: browse fresh catch, make offers, track them in My Offers | ✅ Working |
+| Buyer verification (Verified badge set by an admin after checking a permit or ID) | ✅ Working |
+| Buyer matches: fisher accepts or declines real offers, sale gets a price-alignment score | ✅ Working |
+| Checkout with GCash, Maya or LandBank | ✅ Working as a **demo payment** (no real money moves) |
+| AI Advisor | ✅ Working: Google Gemini (free) with guardrails and an offline fallback |
+| Sea Today forecast (waves, wind, rain, go / careful / stay ashore) | ✅ Working, from Open-Meteo |
+| Fair prices per province with a location picker | ✅ Working (run `005_regional_fair_prices.sql`) |
+| Catch photos, shown on listings for buyers | ✅ Working (run `006_catch_photos.sql`) |
+| Edit / delete catches, any species | ✅ Working |
+| Keep me logged in, strong passwords, password change | ✅ Working |
+| Dark Mode with an Appearance switch | ✅ Working |
+| Photo onboarding, welcome tour, Demo Tools | ✅ Working |
+| Notifications | ✅ Built from real sales, listings, sync status, and price updates; tap to open |
 | Monthly report and share | ✅ Working, from real records |
 | Cloud sync (upload and download) with row-level security | ✅ Working |
 | Anonymized regional summary for BFAR / LGU (`regional_catch_summary`) | ✅ In the database; no dashboard yet |
-| Buyer accounts and buyer verification | 🔜 Planned |
-| SMS / USSD entry | 🔜 Planned |
+| SMS / USSD entry | Future work, outside this project |
 
 ---
 
@@ -286,7 +318,7 @@ The figure traces how a single fisher interaction becomes both a fisher-facing m
 
 **Palakaya deliberately does not:**
 - Itself buy, sell, or physically handle fish, negotiate, or mediate the exchange between fisher and buyer.
-- Process or hold payment — it surfaces buyer contact and matched listings; payment and delivery are arranged directly between fisher and buyer.
+- Process real money. The in-app checkout (GCash, Maya, LandBank) is a **demonstration** that follows the real steps (account, one-time code, PIN, receipt) without contacting any payment provider; delivery is arranged directly between fisher and buyer.
 - Extend to commercial fishing operators or aquaculture accounts.
 - Expose individual fisher identities or raw transaction data to BFAR or LGU users — government-facing outputs are anonymized and aggregated at the regional level only.
 
@@ -482,15 +514,33 @@ cd Palakaya
 open Palakaya.xcodeproj
 ```
 
-Pick an iPhone simulator and press **⌘R**. Log in with the demo account: mobile `09172345678`, password `password`.
+Pick an iPhone simulator and press **⌘R**. Log in with the demo fisher: mobile `09172345678`, password `password`.
 
 Without any setup the app runs **fully offline**: your data stays on the phone and the Advisor uses its built-in answers.
 
 ### Turn on the cloud and the AI Advisor (optional, free)
 
-1. Follow [`supabase/SETUP.md`](supabase/SETUP.md) to create the database, run `schema.sql`, and deploy the `advisor` function with your `GEMINI_API_KEY` secret.
+1. Follow [`supabase/SETUP.md`](supabase/SETUP.md) to create the database (run `schema.sql`, then `004_buyers_offers.sql`, then `006_catch_photos.sql`, then `seed_demo.sql` for demo data) and deploy the `advisor` function with your `GEMINI_API_KEY` secret.
 2. Copy `supabase/Secrets.example.plist` to `Palakaya/Config/Secrets.plist` and fill in your Supabase URL and publishable key.
    That file is git-ignored, so keys never reach GitHub.
+
+### Demo accounts
+
+After running `supabase/seed_demo.sql`, these accounts work on any phone (password for all: **`password`**):
+
+| Role | Name | Mobile | What to show |
+|---|---|---|---|
+| Fisher | Mang Jose Dela Cruz (Bauan) | `09172345678` | 3 offers waiting on his Tulingan listing: accept one, record the sale, see the alignment score |
+| Fisher | Roberto Mendoza (Batangas City) | `09171110001` | Gets paid when Liza pays for his Galunggong |
+| Fisher | Felicidad Reyes (Mabini) | `09171110002` | Alumahan listing with an offer |
+| Fisher | Dindo Garcia (Mabini) | `09171110003` | Tulingan listing with two offers |
+| Fisher | Rosario Aguilar (Lobo) | `09171110004` | Tamban listing with a below-fair offer |
+| Buyer ✓ | Liza's Seafood Stall | `09181230001` | An **accepted offer ready to pay**: run the GCash / Maya / LandBank demo checkout (one-time code `123456`) |
+| Buyer ✓ | Coastal Fresh Trading Cooperative | `09181230002` | Paid with LandBank; offers on listings |
+| Buyer | Bay Fish Traders (not verified) | `09181230003` | Shows how an unverified buyer looks to fishers |
+| Buyer ✓ | Ate Mila's Carinderia | `09181230004` | Paid with Maya; offers on listings |
+
+The month of demo sales gives every main species (Galunggong, Tamban, Tulingan, Bisugo, Alumahan) a live fair price from at least 5 real sales.
 
 ---
 
@@ -504,24 +554,28 @@ Without any setup the app runs **fully offline**: your data stays on the phone a
 
 | Feature | Status |
 |---|---|
+| **Mobile Application Development — Finals Requirement** | ✅ Completed |
 | Fisher profile, catch logging, and catch history | ✅ Complete |
-| Fair-price benchmarking engine | ✅ Complete |
+| Fair-price benchmarking from real sales | ✅ Complete |
 | Marketplace listing & buyer matching | ✅ Complete |
 | Transaction recording & price-alignment scoring | ✅ Complete |
-| Catch & Market Advisor (real AI with Google Gemini, offline fallback) | ✅ Complete |
+| Buyer accounts, offers and admin-verified buyers | ✅ Complete |
+| Demo checkout (GCash, Maya, LandBank) with receipts | ✅ Complete |
+| Catch & Market Advisor (real AI with Google Gemini, guardrails, offline fallback) | ✅ Complete |
+| Sea Today weather and sea forecast | ✅ Complete |
+| Province fair prices, catch photos on listings | ✅ Complete |
+| Dark Mode, photo onboarding, welcome tour | ✅ Complete |
 | Catch & income report generation and sharing | ✅ Complete |
 | Native SwiftUI iOS app (MVC) with offline storage | ✅ Complete |
 | Cloud database, login, and two-way sync (Supabase, row-level security) | ✅ Complete |
-| Shared marketplace and fair prices from real sales | ✅ Complete |
-| Buyer accounts and buyer verification | 🔜 Planned |
-| SMS/USSD entry for phones without data | 🔜 Planned |
-| BFAR / LGU dashboard on top of `regional_catch_summary` | 🔜 Planned |
-| In-app payment & escrow so sales can settle without leaving Palakaya | 🔜 Planned |
-| Full SMS/USSD marketplace transactions (not just entry & lookup) | 🔜 Planned |
-| Partnership toward a government-audited price index | 🔜 Planned |
-| Extending the reference architecture to other Philippine agricultural markets | 🔜 Planned |
-| Deeper cooperative-organizing tools built on aggregate catch data | 🔜 Planned |
-| Formal impact evaluation on fisher income and bargaining position, as ABALOBI has undergone | 🔜 Planned |
+
+**Beyond this project (future work):**
+
+| Idea | Why it is outside this build |
+|---|---|
+| Real payments & escrow | Moving real money needs a licensed payment provider; the app ships a demo checkout instead |
+| SMS/USSD access for phones without data | Needs a telecom short-code partner |
+| BFAR / LGU dashboard on `regional_catch_summary` | The anonymized data is already collected; only the government-facing screen is left |
 
 ---
 

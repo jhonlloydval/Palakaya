@@ -4,6 +4,12 @@ struct OtherListingDetailsView: View {
     var itemID: String
     @Environment(AppState.self) private var appState
     private var item: OtherListing? { appState.marketListings.first { $0.id == itemID } }
+    @State private var showOffer = false
+
+    /// The buyer's latest offer on this listing, if any.
+    private var myOffer: Offer? {
+        appState.myOffers.first { $0.iAmBuyer && $0.catchID.uuidString == itemID && $0.status != .cancelled }
+    }
 
     var body: some View {
         if let item {
@@ -11,10 +17,7 @@ struct OtherListingDetailsView: View {
             let total = Int(item.weight * Double(item.price))
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 18).fill(Color.pkSurface2).frame(height: 144)
-                        Image(systemName: "water.waves").font(.system(size: 40)).foregroundColor(.pkAqua)
-                    }.padding(.bottom, 16)
+                    RemoteCatchPhoto(url: item.photoURL).padding(.bottom, 16)
 
                     Text(item.species).font(.system(size: 22, weight: .bold))
                     Text("\(item.weight.pkTrimmed) kg available").font(.system(size: 13)).foregroundColor(.pkSub).padding(.bottom, 12)
@@ -64,13 +67,39 @@ struct OtherListingDetailsView: View {
                         .padding(.bottom, 24)
                     }
 
+                    if appState.isBuyer && item.contactMobile != nil {
+                        if let offer = myOffer {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Your offer: ₱\(offer.pricePerKg.pkTrimmed)/kg · \(offer.quantityKg.pkTrimmed) kg")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text(offer.status.label).font(.system(size: 13)).foregroundColor(.pkSub)
+                            }
+                            .padding(16)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.pkSurface2)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .padding(.bottom, 12)
+                            if offer.status == .declined {
+                                PrimaryButton(title: "Make a New Offer") { showOffer = true }.padding(.bottom, 12)
+                            } else {
+                                GhostButton(title: "See My Offers", systemImage: "tag") { appState.goTab(.offers) }
+                                    .padding(.bottom, 12)
+                            }
+                        } else {
+                            PrimaryButton(title: "Make an Offer", systemImage: "tag") { showOffer = true }
+                                .padding(.bottom, 12)
+                        }
+                    }
+
                     if let mobile = item.contactMobile, let call = URL(string: "tel:\(mobile)"),
                        let text = URL(string: "sms:\(mobile)") {
                         HStack(spacing: 12) {
                             contactLink("Call", "phone.fill", call)
                             contactLink("Text", "message.fill", text)
                         }
-                        InfoBox(text: "Agree on price, payment and pickup directly with the fisher. Palakaya does not handle payments.")
+                        InfoBox(text: appState.isBuyer
+                                ? "After the fisher accepts, pay in the app with GCash, Maya or LandBank (demo payment), then agree on pickup."
+                                : "Agree on price and pickup directly with the fisher.")
                             .padding(.top, 12)
                     } else {
                         InfoBox(text: "Sample listing: contact details appear on real listings from other fishers.")
@@ -79,6 +108,7 @@ struct OtherListingDetailsView: View {
                 .padding(.horizontal, 20).padding(.bottom, 28)
             }
             .background(Color.pkBg)
+            .sheet(isPresented: $showOffer) { MakeOfferView(listing: item) }
             .navigationTitle(item.species)
             .navigationBarTitleDisplayMode(.inline)
         }

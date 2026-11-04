@@ -8,7 +8,8 @@ struct NotificationsSheetView: View {
 
     private var items: [NotificationItem] {
         NotificationsController.items(catches: allCatches.owned(by: appState.currentUserID),
-                                      market: appState.marketListings, marketIsSample: appState.marketIsSample)
+                                      market: appState.marketListings, marketIsSample: appState.marketIsSample,
+                                      offers: appState.myOffers)
     }
 
     var body: some View {
@@ -27,6 +28,7 @@ struct NotificationsSheetView: View {
             }
             ScrollView {
                 ForEach(items) { n in
+                    Button { open(n) } label: {
                     HStack(alignment: .top, spacing: 12) {
                         ZStack {
                             Circle().fill(Color.pkSurface2).frame(width: 36, height: 36)
@@ -37,12 +39,29 @@ struct NotificationsSheetView: View {
                             Text(n.text).font(.system(size: 13.5)).foregroundColor(.pkText).lineSpacing(2)
                             Text(n.time).font(.system(size: 11)).foregroundColor(.pkSub)
                         }
+                        Spacer(minLength: 0)
+                        if n.tab != nil {
+                            Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundColor(.pkSub)
+                                .padding(.top, 10)
+                        }
                     }
                     .padding(.vertical, 12)
+                    .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(n.tab == nil)
                     Divider().overlay(Color.pkBorder)
                 }
             }
         }
         .padding(20)
+        .task { await OfferController.refresh(appState: appState) }
+    }
+
+    private func open(_ n: NotificationItem) {
+        guard let tab = n.tab else { return }
+        dismiss()
+        appState.goTab(tab)
+        if let route = n.route { appState.path.append(route) }
     }
 }

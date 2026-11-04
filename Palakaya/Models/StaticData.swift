@@ -21,9 +21,13 @@ let ESTIMATED_FAIR_PRICES: [String: FairPriceInfo] = [
 ]
 
 let RECENT_SPECIES = ["Galunggong", "Tamban", "Tulingan", "Bisugo"]
-/// Live prices from real sales where available, otherwise the built-in estimate.
+/// Prices from the fisher's own province where it has enough sales, then all Palakaya sales, then the estimate.
 var FAIR_DB: [String: FairPriceInfo] {
-    ESTIMATED_FAIR_PRICES.merging(FairPriceService.live) { _, live in live }
+    let home = FairPriceService.regionalKey(matching: FairPriceService.homeProvince)
+        .flatMap { FairPriceService.regional[$0] } ?? [:]
+    return ESTIMATED_FAIR_PRICES
+        .merging(FairPriceService.live) { _, live in live }
+        .merging(home) { _, regional in regional }
 }
 
 let ALL_SPECIES = Array(ESTIMATED_FAIR_PRICES.keys).sorted()
@@ -40,6 +44,8 @@ struct OtherListing: Identifiable {
     var fair: Bool
     var fresh: Bool = false
     var contactMobile: String? = nil
+    var offerCount: Int = 0
+    var photoURL: String? = nil
 }
 
 /// Shown only when cloud sync is not set up, and labelled as samples in the Market.
@@ -59,6 +65,20 @@ struct Buyer: Identifiable, Hashable {
     var distance: String
     var fair: Bool
     var type: String
+    /// Set when this buyer comes from a real offer in the cloud.
+    var offerID: UUID? = nil
+    var quantity: Double? = nil
+    var message: String = ""
+}
+
+extension Buyer {
+    init(offer: Offer, fair: FairPriceInfo?) {
+        self.init(id: offer.id.uuidString, name: offer.buyerName, verified: offer.buyerVerified, rating: 0,
+                  trans: offer.buyerPaidCount, offer: Int(offer.pricePerKg.rounded()),
+                  distance: offer.buyerMunicipality ?? "", fair: fair.map { offer.pricePerKg >= Double($0.low) } ?? true,
+                  type: offer.buyerVerified ? "Verified buyer" : "Buyer", offerID: offer.id,
+                  quantity: offer.quantityKg, message: offer.message)
+    }
 }
 
 let BUYERS: [Buyer] = [
@@ -71,11 +91,21 @@ struct NotificationItem: Identifiable {
     var kind: String
     var text: String
     var time: String
+    /// Where tapping the notification goes: a tab, then optionally a screen inside it.
+    var tab: AppTab? = nil
+    var route: Route? = nil
 }
 
+let BUYER_ADVISOR_SUGGESTIONS = [
+    "What is a fair price to offer for Tulingan today?",
+    "Which fish is the best value this week?",
+    "How do I keep fish fresh after I buy it?",
+    "How do I get the Verified badge?",
+]
+
 let ADVISOR_SUGGESTIONS = [
-    "Magkano ang fair price ng Galunggong ngayon?",
-    "Aling fishing ground ang madalas kong magandang huli?",
-    "Bakit mababa ang presyo ng huling benta ko?",
-    "Anong isda ang mataas ang presyo ngayong linggo?",
+    "What is the fair price of Galunggong today?",
+    "Which fishing ground gives me my best catch?",
+    "Was my last sale priced fairly?",
+    "Which fish has the highest price this week?",
 ]

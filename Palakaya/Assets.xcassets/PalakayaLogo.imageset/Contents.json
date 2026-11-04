@@ -3,6 +3,16 @@
     {
       "filename" : "PalakayaLogo.png",
       "idiom" : "universal"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "PalakayaLogo-dark.png",
+      "idiom" : "universal"
     }
   ],
   "info" : {

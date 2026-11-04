@@ -4,6 +4,9 @@ import SwiftData
 struct LoginView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
+    @State private var isLoggingIn = false
+    @State private var showForgot = false
+    @AppStorage("keepLoggedIn") private var keepLoggedIn = true
 
     var body: some View {
         @Bindable var appState = appState
@@ -28,13 +31,17 @@ struct LoginView: View {
                 }
 
                 HStack {
+                    Toggle(isOn: $keepLoggedIn) {
+                        Text("Keep me logged in").font(.system(size: 14, weight: .medium)).foregroundColor(.pkText)
+                    }
+                    .toggleStyle(CheckboxToggleStyle())
                     Spacer()
-                    Button("Forgot Password?") {}
+                    Button("Forgot Password?") { showForgot = true }
                         .font(.system(size: 13, weight: .medium)).foregroundColor(.pkDark)
                 }
                 .padding(.bottom, 22)
 
-                GradientButton(title: "Log In") { doLogin() }
+                GradientButton(title: isLoggingIn ? "Logging in…" : "Log In") { doLogin() }
 
                 HStack(spacing: 5) {
                     Text("Don't have an account?").foregroundColor(.pkSub)
@@ -49,20 +56,31 @@ struct LoginView: View {
         }
         .background(Color.pkBg)
         .scrollDismissesKeyboard(.interactively)
+        .alert("Forgot your password?", isPresented: $showForgot) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Resetting by text message is coming soon. For now, ask the Palakaya team to reset it, using the mobile number you signed up with. If you're still logged in on another phone, you can change it there in Profile → Personal Information.")
+        }
     }
 
     private func doLogin() {
-        do {
-            let user = try AuthController(context: modelContext)
-                .login(mobile: appState.loginMobile, password: appState.loginPassword)
-            appState.loginError = nil
-            appState.applyUser(user)
-            appState.phase = .main
-            let password = appState.loginPassword
-            appState.loginPassword = ""
-            Task { await SyncController.connectAndSync(user: user, password: password, appState: appState, context: modelContext) }
-        } catch {
-            appState.loginError = error.localizedDescription
+        guard !isLoggingIn else { return }
+        isLoggingIn = true
+        Task {
+            defer { isLoggingIn = false }
+            do {
+                let user = try await AuthController(context: modelContext)
+                    .login(mobile: appState.loginMobile, password: appState.loginPassword)
+                appState.loginError = nil
+                appState.applyUser(user)
+                if keepLoggedIn { UserDefaults.standard.set(user.id.uuidString, forKey: AppState.rememberedUserKey) }
+                appState.phase = .main
+                let password = appState.loginPassword
+                appState.loginPassword = ""
+                await SyncController.connectAndSync(user: user, password: password, appState: appState, context: modelContext)
+            } catch {
+                appState.loginError = error.localizedDescription
+            }
         }
     }
 }

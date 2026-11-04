@@ -41,6 +41,16 @@ final class SupabaseClient {
         try await storeSession(from: request("auth/v1/token?grant_type=password", method: "POST", body: body, authorized: false))
     }
 
+    /// Changes the cloud password of the signed-in account.
+    func updatePassword(_ password: String) async throws {
+        do {
+            _ = try await request("auth/v1/user", method: "PUT", body: ["password": password])
+        } catch CloudError.server(401, _) {
+            try await refresh()
+            _ = try await request("auth/v1/user", method: "PUT", body: ["password": password])
+        }
+    }
+
     func signOut() {
         accessToken = nil
         refreshToken = nil
@@ -82,6 +92,63 @@ final class SupabaseClient {
         } catch CloudError.server(401, _) {
             try await refresh()
             _ = try await request("rest/v1/\(table)", method: "POST", body: rows, headers: headers)
+        }
+    }
+
+    /// Updates the rows matching `filter` (PostgREST syntax, e.g. "id=eq.<uuid>").
+    func update<T: Encodable>(_ table: String, filter: String, values: T) async throws {
+        let headers = ["Prefer": "return=minimal"]
+        do {
+            _ = try await request("rest/v1/\(table)?\(filter)", method: "PATCH", body: values, headers: headers)
+        } catch CloudError.server(401, _) {
+            try await refresh()
+            _ = try await request("rest/v1/\(table)?\(filter)", method: "PATCH", body: values, headers: headers)
+        }
+    }
+
+    /// Inserts one row without merging into existing ones.
+    func insert<T: Encodable>(_ table: String, row: T) async throws {
+        let headers = ["Prefer": "return=minimal"]
+        do {
+            _ = try await request("rest/v1/\(table)", method: "POST", body: row, headers: headers)
+        } catch CloudError.server(401, _) {
+            try await refresh()
+            _ = try await request("rest/v1/\(table)", method: "POST", body: row, headers: headers)
+        }
+    }
+
+    /// Uploads a JPEG to a public Storage bucket (replacing any file at that path) and returns its public URL.
+    func uploadPublicJPEG(_ data: Data, bucket: String, path: String) async throws -> String {
+        func send() async throws {
+            guard let base = AppConfig.supabaseURL, let key = AppConfig.supabaseAnonKey,
+                  let url = URL(string: "storage/v1/object/\(bucket)/\(path)", relativeTo: base) else { throw CloudError.notConfigured }
+            guard let accessToken else { throw CloudError.notSignedIn }
+            var req = URLRequest(url: url)
+            req.httpMethod = "POST"
+            req.timeoutInterval = 60
+            req.setValue(key, forHTTPHeaderField: "apikey")
+            req.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+            req.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
+            req.setValue("true", forHTTPHeaderField: "x-upsert")
+            let (body, response) = try await session.upload(for: req, from: data)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            guard (200..<300).contains(status) else {
+                throw CloudError.server(status, String(data: body, encoding: .utf8) ?? "")
+            }
+        }
+        do { try await send() } catch CloudError.server(401, _) { try await refresh(); try await send() }
+        guard let base = AppConfig.supabaseURL else { throw CloudError.notConfigured }
+        return base.appendingPathComponent("storage/v1/object/public/\(bucket)/\(path)").absoluteString
+    }
+
+    /// Deletes one row by id (Row Level Security still applies).
+    func delete(_ table: String, id: UUID) async throws {
+        let path = "rest/v1/\(table)?id=eq.\(id.uuidString.lowercased())"
+        do {
+            _ = try await request(path, method: "DELETE", body: [String: String]())
+        } catch CloudError.server(401, _) {
+            try await refresh()
+            _ = try await request(path, method: "DELETE", body: [String: String]())
         }
     }
 
@@ -139,7 +206,8 @@ final class SupabaseClient {
               let url = URL(string: path, relativeTo: base) else { throw CloudError.notConfigured }
         var req = URLRequest(url: url)
         req.httpMethod = method
-        req.timeoutInterval = 60
+        // The free AI Advisor can take close to a minute, so allow more time than usual.
+        req.timeoutInterval = path.hasPrefix("functions/") ? 90 : 60
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.setValue(key, forHTTPHeaderField: "apikey")
         if authorized {
