@@ -141,6 +141,13 @@ final class SupabaseClient {
         return base.appendingPathComponent("storage/v1/object/public/\(bucket)/\(path)").absoluteString
     }
 
+    /// A catch photo's address. Seeded demo photos store only their path in the `catch-photos` bucket.
+    static func publicPhotoURL(_ stored: String?) -> URL? {
+        guard let stored, !stored.isEmpty else { return nil }
+        if stored.hasPrefix("http") { return URL(string: stored) }
+        return AppConfig.supabaseURL?.appendingPathComponent("storage/v1/object/public/catch-photos/\(stored)")
+    }
+
     /// Deletes one row by id (Row Level Security still applies).
     func delete(_ table: String, id: UUID) async throws {
         let path = "rest/v1/\(table)?id=eq.\(id.uuidString.lowercased())"

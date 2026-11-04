@@ -17,7 +17,7 @@ struct ListingDetailsView: View {
             let total = Int(c.weight * (c.price ?? 0))
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    CatchPhotoBanner(photo: c.photoData).padding(.bottom, 16)
+                    CatchPhotoBanner(photo: c.photoData, url: c.photoURL).padding(.bottom, 16)
 
                     Text(c.species).font(.system(size: 22, weight: .bold))
                     Text("\(c.weight.pkTrimmed) kg available").font(.system(size: 13)).foregroundColor(.pkSub).padding(.bottom, 12)

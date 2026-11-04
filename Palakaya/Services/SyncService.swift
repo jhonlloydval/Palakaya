@@ -106,7 +106,7 @@ enum SyncService {
     static func pull(ownerID: UUID, context: ModelContext) async throws -> Int {
         guard AppConfig.isCloudEnabled else { throw CloudError.notConfigured }
         let rows: [CatchRow] = try await SupabaseClient.shared.select("catches",
-            query: "select=id,species,weight_kg,fishing_ground,caught_at,status,price_per_kg,sale_amount,buyer_name,alignment_pct")
+            query: "select=*")
         let local = try context.fetch(FetchDescriptor<CatchRecord>())
         let byID = Dictionary(local.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
 
@@ -130,6 +130,7 @@ enum SyncService {
             record.saleAmount = row.sale_amount
             record.buyerName = row.buyer_name
             record.alignment = row.alignment_pct
+            record.photoURL = row.photo_url ?? record.photoURL
             record.needsSync = false
         }
         try context.save()

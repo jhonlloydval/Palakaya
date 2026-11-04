@@ -111,8 +111,12 @@ private struct CameraCapture: UIViewControllerRepresentable {
 /// The catch photo at the top of a catch or listing, or a wave placeholder when there is none.
 struct CatchPhotoBanner: View {
     var photo: Data?
+    /// The uploaded copy, used when this phone doesn't have the photo (for example demo listings).
+    var url: String? = nil
     var body: some View {
-        if let photo, let image = UIImage(data: photo) {
+        if photo == nil, url != nil {
+            RemoteCatchPhoto(url: url)
+        } else if let photo, let image = UIImage(data: photo) {
             Image(uiImage: image)
                 .resizable()
                 .scaledToFill()
@@ -133,7 +137,7 @@ struct CatchPhotoBanner: View {
 struct RemoteCatchPhoto: View {
     var url: String?
     var body: some View {
-        if let url, let link = URL(string: url) {
+        if let link = SupabaseClient.publicPhotoURL(url) {
             AsyncImage(url: link) { phase in
                 if let image = phase.image {
                     image.resizable().scaledToFill()
