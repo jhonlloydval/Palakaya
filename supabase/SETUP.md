@@ -13,10 +13,13 @@ The app works fully offline without this. These steps turn on cloud sync.
    2. `supabase/004_buyers_offers.sql` (buyer accounts, verification, offers, demo payments)
    3. `supabase/006_catch_photos.sql` (catch photos on listings)
    4. `supabase/seed_demo.sql` (optional: demo accounts and a month of realistic data; see the README)
+   5. Optional, photos on the demo listings: from the project folder in Terminal run `bash supabase/upload_demo_photos.sh`.
 
    Already ran `schema.sql` before `002`/`003`/`005` existed? Also run `002_market.sql`, `003_fair_prices.sql`
    and `005_regional_fair_prices.sql` (fair prices per province for the location picker on Fair Prices).
    Also run `006_catch_photos.sql` so catch photos upload and show on listings for buyers and other fishers.
+   Ran `006` before this note? Run `007_demo_photos.sql` too: it adds a missing storage rule (needed to replace a photo)
+   and links the demo listings to their photos.
    Copy a file to the clipboard from Terminal with, for example:
    `pbcopy < ~/GitHub/Palakaya/supabase/004_buyers_offers.sql`
 3. **Authentication → Sign In / Providers → Email**: turn **off** "Confirm email".
