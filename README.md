@@ -33,20 +33,21 @@
 3. [What Palakaya Does](#what-palakaya-does)
 4. [Intended Users & Stakeholders](#intended-users--stakeholders)
 5. [Core Features](#core-features)
-6. [Implementation Status](#implementation-status)
-7. [System Illustration](#system-illustration)
-8. [Scope & Boundaries](#scope--boundaries)
-9. [Tech Stack](#tech-stack)
-10. [Architecture (MVC)](#architecture-mvc)
-11. [Project Structure — iOS App](#project-structure--ios-app)
-12. [Data Models](#data-models)
-13. [Cloud Backend](#cloud-backend)
-14. [Design System](#design-system)
-15. [Figma Prototype](#figma-prototype)
-16. [Getting Started](#getting-started)
-17. [Roadmap](#roadmap)
-18. [References](#references)
-19. [License](#license)
+6. [Screens](#screens)
+7. [Implementation Status](#implementation-status)
+8. [System Illustration](#system-illustration)
+9. [Scope & Boundaries](#scope--boundaries)
+10. [Tech Stack](#tech-stack)
+11. [Architecture (MVC)](#architecture-mvc)
+12. [Project Structure — iOS App](#project-structure--ios-app)
+13. [Data Models](#data-models)
+14. [Cloud Backend](#cloud-backend)
+15. [Design System](#design-system)
+16. [Figma Prototype](#figma-prototype)
+17. [Getting Started](#getting-started)
+18. [Roadmap](#roadmap)
+19. [References](#references)
+20. [License](#license)
 
 </details>
 
@@ -55,7 +56,7 @@
 ## Overview
 
 <div align="center">
-  <img src="assets/ppt/PALAKAYA-1.png" alt="Palakaya — title slide" width="900"/>
+  <img src="assets/deck/01-title.jpg" alt="Palakaya — title slide" width="900"/>
 </div>
 
 <br/>
@@ -77,7 +78,9 @@ This repository contains:
 ## Background & Problem
 
 <div align="center">
-  <img src="assets/ppt/PALAKAYA-2.png" alt="Every season, municipal fishers land the catch, but it's the trader who decides what it's worth" width="900"/>
+  <img src="assets/deck/02-problem.jpg" alt="Every season, municipal fishers land the catch, but it's the trader who decides what it's worth" width="900"/>
+  <br/><br/>
+  <img src="assets/deck/03-problem-numbers.jpg" alt="The problem in numbers" width="900"/>
 </div>
 
 <br/>
@@ -97,7 +100,7 @@ Prior digital tools show promise but stop short of closing the loop: **ISDApp** 
 ## What Palakaya Does
 
 <div align="center">
-  <img src="assets/ppt/PALAKAYA-10.png" alt="What Palakaya sets out to do" width="900"/>
+  <img src="assets/deck/07-objectives.jpg" alt="What Palakaya sets out to do" width="900"/>
 </div>
 
 <br/>
@@ -113,7 +116,7 @@ Palakaya closes the gap on both ends:
 ## Intended Users & Stakeholders
 
 <div align="center">
-  <img src="assets/ppt/PALAKAYA-20.png" alt="Intended users and stakeholders" width="900"/>
+  <img src="assets/deck/08-users.jpg" alt="Intended users and stakeholders" width="900"/>
 </div>
 
 <br/>
@@ -132,12 +135,6 @@ Palakaya's operational structure is built around nine interlocking processes, mo
 
 ### 1. Fisher Profile & Registration
 
-<div align="center">
-  <img src="assets/ppt/PALAKAYA-11.png" alt="Login and registration" width="900"/>
-</div>
-
-<br/>
-
 - Sign-up captures full name, mobile number, landing site, municipality, and province — used to localize fair-price benchmarks and buyer matches.
 - Mobile number + password sign-in, built for low-friction return visits, with **Keep me logged in** so the app opens straight to Home.
 - Strong passwords are required (8+ characters with upper- and lowercase letters and a number), with a live checklist while typing.
@@ -147,7 +144,7 @@ Palakaya's operational structure is built around nine interlocking processes, mo
 ### 2. Digital Catch Logging
 
 <div align="center">
-  <img src="assets/ppt/PALAKAYA-12.png" alt="Digital catch logging flow" width="900"/>
+  <img src="assets/deck/10-log-and-track.jpg" alt="Log and track every catch" width="900"/>
 </div>
 
 <br/>
@@ -160,12 +157,6 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 
 ### 3. My Catch
 
-<div align="center">
-  <img src="assets/ppt/PALAKAYA-13.png" alt="My Catch history view" width="900"/>
-</div>
-
-<br/>
-
 - "This month" snapshot: total kilos caught, recorded sales, and days fished, all computed from the fisher's own records.
 - Filterable by **All**, **Available**, or **Sold** to see what still needs a buyer.
 - Each entry shows its fair-price range next to the actual sale price, so a fisher can see at a glance whether a past sale held up.
@@ -173,7 +164,7 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 ### 4. Fair-Price Benchmarking Engine
 
 <div align="center">
-  <img src="assets/ppt/PALAKAYA-17.png" alt="Fair-price benchmarking engine" width="900"/>
+  <img src="assets/deck/11-fair-prices.jpg" alt="Fair prices from real sales" width="900"/>
 </div>
 
 <br/>
@@ -186,7 +177,7 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 ### 5. Marketplace Listing & Buyer Matching
 
 <div align="center">
-  <img src="assets/ppt/PALAKAYA-19.png" alt="Marketplace listing and buyer matching" width="900"/>
+  <img src="assets/deck/12-marketplace.jpg" alt="Marketplace and offers" width="900"/>
 </div>
 
 <br/>
@@ -198,12 +189,6 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 
 ### 6. Transaction Recording & Price-Alignment Scoring
 
-<div align="center">
-  <img src="assets/ppt/PALAKAYA-15.png" alt="Transaction recording and price-alignment scoring" width="900"/>
-</div>
-
-<br/>
-
 - Once a fisher accepts a buyer's offer, the agreed price and quantity are recorded and instantly checked against the fair-price benchmark.
 - Produces a **price-alignment score** for that sale — turning every completed transaction into a fairness check instead of a one-off, unverifiable exchange.
 - Divergent sales are flagged and routed to the Catch & Market Advisor for a plain-language explanation.
@@ -211,7 +196,7 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 ### 7. Catch & Market Advisor (AI Companion)
 
 <div align="center">
-  <img src="assets/ppt/PALAKAYA-14.png" alt="Catch and Market Advisor" width="900"/>
+  <img src="assets/deck/14-ai-advisor.jpg" alt="A free AI Advisor" width="900"/>
 </div>
 
 <br/>
@@ -225,16 +210,16 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 
 ### 8. Catch & Income Reports
 
-<div align="center">
-  <img src="assets/ppt/PALAKAYA-16.png" alt="Catch and income reports" width="900"/>
-</div>
-
-<br/>
-
 - Consolidates a fisher's catch history, transaction log, and price-alignment trend into a savable, exportable personal report — monthly totals, average price alignment, and top species.
 - Exportable and shareable on demand; the same records roll up into the BFAR/LGU aggregate reporting layer.
 
 ### 9. Buyer Accounts, Offers & Verification
+
+<div align="center">
+  <img src="assets/deck/13-demo-payment.jpg" alt="Payment, shown as a demo" width="900"/>
+</div>
+
+<br/>
 
 - Anyone can register as a **buyer** (stall, retailer, carinderia or cooperative), browse fresh listings, and send a price offer with a quantity and a message.
 - The fisher sees every offer side by side: buyer name, a **Verified** badge, number of paid purchases, and whether the offer is within the fair price. They accept one or decline.
@@ -257,6 +242,19 @@ A fisher logs species, weight, fishing ground, and date/time the moment they lan
 ### Low-Bandwidth / Offline Entry
 
 The app is **offline-first**. Catches, listings, and sales are saved on the phone right away, even with no signal at the landing site, and uploaded automatically on the next successful sync. A fisher can also tap the Wi-Fi button on Home to sync now. After login, the fisher's records download back from the cloud, so a reinstall or a new phone keeps their history. An SMS/USSD channel for phones without data is planned (see [Roadmap](#roadmap)).
+
+---
+
+## Screens
+
+Real screenshots from the finals build, in Light and Dark Mode.
+
+<table>
+<tr><td align="center"><img src="assets/screens/onboarding.jpg" alt="Onboarding" width="170"/><br/><sub>Onboarding</sub></td><td align="center"><img src="assets/screens/password-rules.jpg" alt="Sign-up password rules" width="170"/><br/><sub>Sign-up password rules</sub></td><td align="center"><img src="assets/screens/home.jpg" alt="Home" width="170"/><br/><sub>Home</sub></td><td align="center"><img src="assets/screens/sea-today.jpg" alt="Sea Today" width="170"/><br/><sub>Sea Today</sub></td><td align="center"><img src="assets/screens/log-catch.jpg" alt="Log Catch" width="170"/><br/><sub>Log Catch</sub></td></tr>
+<tr><td align="center"><img src="assets/screens/any-fish-name.jpg" alt="Any fish name" width="170"/><br/><sub>Any fish name</sub></td><td align="center"><img src="assets/screens/my-catch.jpg" alt="My Catch" width="170"/><br/><sub>My Catch</sub></td><td align="center"><img src="assets/screens/fair-prices.jpg" alt="Fair Prices" width="170"/><br/><sub>Fair Prices</sub></td><td align="center"><img src="assets/screens/market.jpg" alt="Market" width="170"/><br/><sub>Market</sub></td><td align="center"><img src="assets/screens/listing-photo.jpg" alt="Listing with photo" width="170"/><br/><sub>Listing with photo</sub></td></tr>
+<tr><td align="center"><img src="assets/screens/buyer-matches.jpg" alt="Buyer Matches" width="170"/><br/><sub>Buyer Matches</sub></td><td align="center"><img src="assets/screens/sale-recorded.jpg" alt="Sale Recorded" width="170"/><br/><sub>Sale Recorded</sub></td><td align="center"><img src="assets/screens/buyer-offers.jpg" alt="Buyer: My Offers" width="170"/><br/><sub>Buyer: My Offers</sub></td><td align="center"><img src="assets/screens/demo-payment.jpg" alt="Demo payment" width="170"/><br/><sub>Demo payment</sub></td><td align="center"><img src="assets/screens/payment-receipt.jpg" alt="Payment receipt" width="170"/><br/><sub>Payment receipt</sub></td></tr>
+<tr><td align="center"><img src="assets/screens/advisor.jpg" alt="AI Advisor" width="170"/><br/><sub>AI Advisor</sub></td><td align="center"><img src="assets/screens/advisor-guardrail.jpg" alt="Advisor guardrail" width="170"/><br/><sub>Advisor guardrail</sub></td><td align="center"><img src="assets/screens/notifications.jpg" alt="Notifications" width="170"/><br/><sub>Notifications</sub></td><td align="center"><img src="assets/screens/profile.jpg" alt="Profile" width="170"/><br/><sub>Profile</sub></td><td align="center"><img src="assets/screens/home-dark.jpg" alt="Home in Dark Mode" width="170"/><br/><sub>Home in Dark Mode</sub></td></tr>
+</table>
 
 ---
 
@@ -295,7 +293,7 @@ What works in this build:
 ## System Illustration
 
 <div align="center">
-  <img src="assets/ppt/PALAKAYA-18.png" alt="One pipeline, two outcomes — system illustration" width="900"/>
+  <img src="assets/deck/09-how-it-works.jpg" alt="One flow, from the boat to the receipt" width="900"/>
 </div>
 
 <br/>
@@ -305,12 +303,6 @@ The figure traces how a single fisher interaction becomes both a fisher-facing m
 ---
 
 ## Scope & Boundaries
-
-<div align="center">
-  <img src="assets/ppt/PALAKAYA-21.png" alt="Scope and boundaries" width="900"/>
-</div>
-
-<br/>
 
 **Palakaya does:**
 - Cover catch logging, fair-price benchmarking, buyer matching, and aggregate fisheries reporting end-to-end.
@@ -558,7 +550,7 @@ The month of demo sales gives every main species (Galunggong, Tamban, Tulingan, 
 ## Roadmap
 
 <div align="center">
-  <img src="assets/ppt/PALAKAYA-22.png" alt="Where the boundaries above could expand next" width="900"/>
+  <img src="assets/deck/19-links-and-next.jpg" alt="Links and next steps" width="900"/>
 </div>
 
 <br/>
