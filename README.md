@@ -124,7 +124,7 @@ Palakaya closes the gap on both ends:
 | Group | Role |
 |---|---|
 | **Municipal Fishers** | Primary users, as defined under RA 8550 — including those currently reliant on consignacion to sell their catch |
-| **Buyers & Cooperatives** | Vendors, retailers, wholesalers, and fisherfolk cooperatives who transact on the marketplace or draw on its aggregate data |
+| **Buyers & Cooperatives** | Market stalls, carinderias, retailers and fisherfolk cooperatives. They register as buyers, browse listings and send offers; an admin gives the **Verified** badge after checking a permit or ID |
 | **BFAR & LGUs** | Institutional stakeholders who gain a live, anonymized regional view of catch volume and price alignment, replacing manual surveys |
 
 ---
@@ -135,10 +135,11 @@ Palakaya's operational structure is built around nine interlocking processes, mo
 
 ### 1. Fisher Profile & Registration
 
-- Sign-up captures full name, mobile number, landing site, municipality, and province — used to localize fair-price benchmarks and buyer matches.
+- Sign-up captures full name, mobile number, landing site, municipality, and province — used to localize fair-price benchmarks and buyer matches. A **Fisher / Buyer** switch at the top lets a buyer register with a store, stall or cooperative name instead.
 - Mobile number + password sign-in, built for low-friction return visits, with **Keep me logged in** so the app opens straight to Home.
 - Strong passwords are required (8+ characters with upper- and lowercase letters and a number), with a live checklist while typing.
-- A five-step photo onboarding introduces the app, and a short, skippable welcome tour follows sign-up.
+- A five-step, swipeable photo onboarding (know your catch, check the sea, sell to buyers, ask the Advisor, catch smarter) introduces the app, and a short, skippable welcome tour follows sign-up.
+- Forgot Password explains how to recover an account; a signed-in user changes the password in Profile.
 - One profile carries a fisher's full catch and sale history across sessions; an optional Fisherfolk ID field allows a profile to double as a documented catch-and-income record over time.
 
 ### 2. Digital Catch Logging
@@ -279,6 +280,7 @@ What works in this build:
 | Fair prices per province with a location picker | ✅ Working (run `005_regional_fair_prices.sql`) |
 | Catch photos, shown on listings for buyers | ✅ Working (run `006_catch_photos.sql`) |
 | Edit / delete catches, any species | ✅ Working |
+| Editable profile (personal, fisherfolk and landing-site details) | ✅ Working, uploaded on save when signed in |
 | Keep me logged in, strong passwords, password change | ✅ Working |
 | Dark Mode with an Appearance switch | ✅ Working |
 | Photo onboarding, welcome tour, Demo Tools | ✅ Working |
@@ -298,7 +300,7 @@ What works in this build:
 
 <br/>
 
-The figure traces how a single fisher interaction becomes both a fisher-facing marketplace transaction and government-facing fisheries data. A fisher registers a profile and logs a catch by species, weight, ground, and date, while the Catch & Market Advisor concurrently analyzes historical patterns to recommend fishing grounds and expected prices. Both streams feed the fair-price benchmarking step, which informs a marketplace listing and a buyer match. Once a sale completes, it's recorded and checked against the benchmark to produce a price-alignment score, consolidated alongside the fisher's ongoing catch history into an exportable report. At the aggregate level, price-checked transaction data rolls up into anonymized regional data that informs BFAR and LGU fisheries planning — the same pipeline that helps a fisher get a fair price simultaneously produces the data government agencies currently lack.
+The figure traces how a single fisher interaction becomes both a fisher-facing marketplace transaction and government-facing fisheries data. A fisher registers a profile and logs a catch by species, weight, ground, and date, while the Catch & Market Advisor concurrently analyzes historical patterns to recommend fishing grounds and expected prices. Both streams feed the fair-price benchmarking step, which informs a marketplace listing and a buyer match. Once the fisher accepts an offer, the sale is recorded and checked against the benchmark to produce a price-alignment score, the buyer pays through the demo checkout, and the result is consolidated alongside the fisher's ongoing catch history into an exportable report. At the aggregate level, price-checked transaction data rolls up into anonymized regional data that informs BFAR and LGU fisheries planning — the same pipeline that helps a fisher get a fair price simultaneously produces the data government agencies currently lack.
 
 ---
 
@@ -388,7 +390,10 @@ Palakaya/
 │   ├── 004_buyers_offers.sql        buyer accounts, verification, offers, demo payments
 │   ├── 005_regional_fair_prices.sql fair prices per province
 │   ├── 006_catch_photos.sql         catch photo storage and photos on listings
+│   ├── 007_demo_photos.sql          storage rule for replacing a photo, and photos for the demo listings
 │   ├── seed_demo.sql                demo accounts and a month of data
+│   ├── demo-photos/                 six listing photos with CREDITS.md
+│   ├── upload_demo_photos.sh        uploads the demo photos to the storage bucket
 │   ├── functions/advisor/index.ts   AI Advisor Edge Function (Gemini, with guardrails)
 │   ├── Secrets.example.plist        template for Palakaya/Config/Secrets.plist
 │   └── SETUP.md                     step-by-step cloud + AI setup
@@ -415,6 +420,8 @@ On-device SwiftData models (`Palakaya/Models`):
     var landingSite: String
     var fisherfolkID: String
     var createdAt: Date
+    var role: String              // "fisher" or "buyer"
+    var businessName: String      // store, stall or cooperative (buyers only)
 }
 
 @Model final class CatchRecord {
@@ -432,6 +439,8 @@ On-device SwiftData models (`Palakaya/Models`):
     var alignment: Int?           // price-alignment score, % of the benchmark midpoint
     var buyersInterested: Int?
     var hasPhoto: Bool
+    var photoData: Data?          // JPEG kept on the phone (external storage)
+    var photoURL: String?         // link or bucket path once the photo is uploaded
     var needsSync: Bool           // true until uploaded to the cloud
 }
 
@@ -444,7 +453,9 @@ On-device SwiftData models (`Palakaya/Models`):
 }
 ```
 
-On first launch the app seeds a demo fisher (`Mang Jose Dela Cruz`) with four sample catches, so it is explorable right away.
+Offers are not stored on the phone. `Offer` is a plain `Decodable` struct read from the cloud `my_offers` view (status `pending`, `accepted`, `declined`, `paid` or `cancelled`, price per kilo, quantity, buyer name and Verified flag, payment method and reference). `PaymentMethod` lists the three demo channels (GCash, Maya, LandBank).
+
+On first launch the app seeds a demo fisher (`Mang Jose Dela Cruz`) with nine sample catches over three weeks (one listed, two available, six sold), so it is explorable right away. Their IDs match `supabase/seed_demo.sql`, so the cloud copy lines up after the first sync.
 
 ---
 
@@ -454,12 +465,16 @@ Supabase (Postgres) tables, views and storage, defined in [`supabase/schema.sql`
 
 | Object | What it holds | Who can read it |
 |---|---|---|
-| `profiles` | Name, mobile, municipality, province, landing site, role (fisher or buyer), verified badge | Only that fisher |
+| `profiles` | Name, mobile, municipality, province, landing site, role (fisher or buyer), business name, verified badge | Only that account (through the `my_profile` view) |
 | `catches` | Every catch, listing, and sale, with an optional photo link | Only the fisher who owns it (row-level security) |
 | `market_listings` (view) | Other fishers' listed catches: species, kg, price, first name, landing site, contact number | Signed-in users |
 | `fair_prices` (view) | Per species, last 30 days of sales: p25 / median / p75, only when ≥ 5 sales | Signed-in users |
 | `regional_fair_prices` (view) | Same as `fair_prices`, per province, for the location picker | Signed-in users |
 | `offers` | Buyer offers on listings, their status and demo payments | The buyer and the fisher involved |
+| `my_offers` (view) | Each offer joined with the catch, the buyer's name, Verified flag and paid-purchase count, and the fisher's first name and landing site | The buyer and the fisher involved |
+| Trigger `check_offer` | Fills in the fisher from the catch and allows only real status moves: the fisher accepts or declines a pending offer; the buyer cancels a pending offer or pays an accepted one | Runs on every insert and update |
+| Trigger `keep_verified_flag` | Keeps the Verified badge unchanged whenever an app user saves their profile, so only an admin can set it | Runs on every profile insert and update |
+| Trigger `decline_other_offers` | Declines the remaining pending offers once a listed catch is sold | Runs when a catch changes status |
 | Storage bucket `catch-photos` | Catch photos, each in a folder named after its owner | Anyone with the link; only the owner can upload or delete |
 | `regional_catch_summary` (view) | Monthly totals by province and species for BFAR / LGU, anonymized, groups of ≥ 5 only | Signed-in users |
 | Edge Function `advisor` | AI Advisor (Google Gemini) with topic and safety guardrails; checks the user is logged in | Signed-in users |
@@ -472,21 +487,23 @@ Weather for Sea Today comes straight from the free Open-Meteo API, not from Supa
 
 Colors come from the Palakaya logo (ocean blue, navy, sea teal) and are centralized in `Components/Theme.swift`.
 
-| Token | Hex | Usage |
-|---|---|---|
-| `pkDark` | `#0261A7` | Primary brand: buttons, active states, gradient start |
-| `pkNavy` | `#01447E` | Wordmark navy, gradient end, deep accents |
-| `pkAqua` | `#2ED5CC` | Sea-teal accents, charts |
-| `pkBg` | `#F5F8F8` | Page backgrounds |
-| `pkSurface` | `#FFFFFF` | Cards, sheets |
-| `pkSurface2` | `#EDF7F6` | Secondary surfaces, static rows |
-| `pkText` | `#10272D` | Primary text |
-| `pkSub` | `#667A80` | Secondary / muted text |
-| `pkBorder` | `#DDE9E8` | Dividers, input borders |
-| `pkSuccess` / `pkSuccessBg` | `#3E9C7D` / `#E7F5EF` | Positive status (e.g. within benchmark) |
-| `pkWarning` / `pkWarningBg` | `#C9852B` / `#FCF2E1` | Caution status |
-| `pkDanger` / `pkDangerBg` | `#C9483E` / `#FBEAE8` | Below-benchmark / error status |
-| `pkInfo` / `pkInfoBg` | `#1F6FA3` / `#E7F1F7` | Informational callouts |
+| Token | Light | Dark | Usage |
+|---|---|---|---|
+| `pkDark` | `#0261A7` | `#3A93D6` | Primary brand: buttons, active states, gradient start |
+| `pkNavy` | `#01447E` | `#0B4F8A` | Wordmark navy, gradient end, deep accents |
+| `pkAqua` | `#2ED5CC` | `#2ED5CC` | Sea-teal accents, charts |
+| `pkBg` | `#F5F8F8` | `#0A1A2B` | Page backgrounds |
+| `pkSurface` | `#FFFFFF` | `#112638` | Cards, sheets |
+| `pkSurface2` | `#EDF7F6` | `#17324A` | Secondary surfaces, static rows |
+| `pkText` | `#10272D` | `#E8F1F5` | Primary text |
+| `pkSub` | `#667A80` | `#93A9B5` | Secondary / muted text |
+| `pkBorder` | `#DDE9E8` | `#223B52` | Dividers, input borders |
+| `pkSuccess` / `pkSuccessBg` | `#3E9C7D` / `#E7F5EF` | `#4CC39A` / `#123528` | Positive status (e.g. within benchmark) |
+| `pkWarning` / `pkWarningBg` | `#C9852B` / `#FCF2E1` | `#E0A24A` / `#3A2A12` | Caution status |
+| `pkDanger` / `pkDangerBg` | `#C9483E` / `#FBEAE8` | `#EF6B60` / `#3D1A18` | Below-benchmark / error status |
+| `pkInfo` / `pkInfoBg` | `#1F6FA3` / `#E7F1F7` | `#5AA8DE` / `#122C40` | Informational callouts |
+
+Each token carries a Light and a Dark value, so every screen follows the Appearance setting. Dark Mode uses a night-sea navy rather than black.
 
 Buttons and text fields are at least 48–52 pt tall for easy tapping with wet or gloved hands.
 
@@ -523,7 +540,7 @@ Without any setup the app runs **fully offline**: your data stays on the phone a
 
 ### Turn on the cloud and the AI Advisor (optional, free)
 
-1. Follow [`supabase/SETUP.md`](supabase/SETUP.md) to create the database (run `schema.sql`, then `004_buyers_offers.sql`, then `006_catch_photos.sql`, then `seed_demo.sql` for demo data) and deploy the `advisor` function with your `GEMINI_API_KEY` secret.
+1. Follow [`supabase/SETUP.md`](supabase/SETUP.md) to create the database (run `schema.sql`, then `004_buyers_offers.sql`, then `006_catch_photos.sql`, then `seed_demo.sql` for demo data; `upload_demo_photos.sh` and `007_demo_photos.sql` add photos to the demo listings) and deploy the `advisor` function with your `GEMINI_API_KEY` secret.
 2. Copy `supabase/Secrets.example.plist` to `Palakaya/Config/Secrets.plist` and fill in your Supabase URL and publishable key.
    That file is git-ignored, so keys never reach GitHub.
 
@@ -558,6 +575,7 @@ The month of demo sales gives every main species (Galunggong, Tamban, Tulingan, 
 | Feature | Status |
 |---|---|
 | **Mobile Application Development — Finals Requirement** | ✅ Completed |
+| Editable profile, password change, strong-password rules | ✅ Complete |
 | Fisher profile, catch logging, and catch history | ✅ Complete |
 | Fair-price benchmarking from real sales | ✅ Complete |
 | Marketplace listing & buyer matching | ✅ Complete |
