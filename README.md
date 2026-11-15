@@ -37,17 +37,18 @@
 7. [Implementation Status](#implementation-status)
 8. [System Illustration](#system-illustration)
 9. [Scope & Boundaries](#scope--boundaries)
-10. [Tech Stack](#tech-stack)
-11. [Architecture (MVC)](#architecture-mvc)
-12. [Project Structure — iOS App](#project-structure--ios-app)
-13. [Data Models](#data-models)
-14. [Cloud Backend](#cloud-backend)
-15. [Design System](#design-system)
-16. [Figma Prototype](#figma-prototype)
-17. [Getting Started](#getting-started)
-18. [Roadmap](#roadmap)
-19. [References](#references)
-20. [License](#license)
+10. [Competition & Business Model](#competition--business-model)
+11. [Tech Stack](#tech-stack)
+12. [Architecture (MVC)](#architecture-mvc)
+13. [Project Structure — iOS App](#project-structure--ios-app)
+14. [Data Models](#data-models)
+15. [Cloud Backend](#cloud-backend)
+16. [Design System](#design-system)
+17. [Figma Prototype](#figma-prototype)
+18. [Getting Started](#getting-started)
+19. [Roadmap](#roadmap)
+20. [References](#references)
+21. [License](#license)
 
 </details>
 
@@ -315,6 +316,43 @@ The figure traces how a single fisher interaction becomes both a fisher-facing m
 - Process real money. The in-app checkout (GCash, Maya, LandBank) is a **demonstration** that follows the real steps (account, one-time code, PIN, receipt) without contacting any payment provider; delivery is arranged directly between fisher and buyer.
 - Extend to commercial fishing operators or aquaculture accounts.
 - Expose individual fisher identities or raw transaction data to BFAR or LGU users — government-facing outputs are anonymized and aggregated at the regional level only.
+
+---
+
+## Competition & Business Model
+
+<div align="center">
+  <img src="assets/deck/17-competition.jpg" alt="Competition table" width="900"/>
+</div>
+
+<br/>
+
+| | Catch logging | Fair-price check | Direct buyers / offers | Payment | AI advice | Offline | Data for BFAR / LGU | Built for PH municipal fishers |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Consignacion (status quo) | ✕ | ✕ | ✕ | cash via trader | ✕ | n/a | ✕ | ✓ |
+| ISDApp | ✕ | ✕ | ✕ | ? | ? | ✓ | ? | ✓ |
+| Fish Landing App | ✓ | ✕ | ✕ | ? | ? | ? | ? | ✓ |
+| FishLink | ? | ? | pilot | ? | ? | ? | ? | one town |
+| Fisher Friend (India) | ✓ | ? | ✓ | ? | ? | ? | ✕ | ✕ |
+| ABALOBI (South Africa) | ✓ | ? | ✓ | ? | ? | ? | ✕ | ✕ |
+| **Palakaya** | ✓ | ✓ | ✓ | demo | ✓ | ✓ | data ready, no dashboard yet | ✓ |
+
+Based on the public descriptions of each tool cited in [Background & Problem](#background--problem). "?" means not stated in those sources.
+
+<div align="center">
+  <img src="assets/deck/18-business-model.jpg" alt="Business model" width="900"/>
+</div>
+
+<br/>
+
+**Free for fishers. Paid by buyers, cooperatives and LGUs.** The plans below are a proposal; prices are illustrative and nothing is charged in the current build.
+
+| Who pays | Plan | What they get |
+|---|---|---|
+| Buyers | Verified Buyer plan (about ₱299 a month) | Verified badge, priority placement of offers, receipts |
+| Cooperatives | Cooperative plan | One account for a cooperative's buying, with shared reports |
+| LGUs / BFAR | Data dashboard, annual license | Anonymized catch volume and price alignment by province and species |
+| Later | Small fee per paid sale | Only once a licensed payment partner handles real money |
 
 ---
 
