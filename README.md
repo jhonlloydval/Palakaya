@@ -262,6 +262,9 @@ Real screenshots from the finals build, in Light and Dark Mode.
 
 ## Implementation Status
 
+<details>
+<summary><strong>View feature implementation status</strong></summary>
+
 What works in this build:
 
 | Feature | Status in the iOS app |
@@ -290,6 +293,8 @@ What works in this build:
 | Cloud sync (upload and download) with row-level security | ✅ Working |
 | Anonymized regional summary for BFAR / LGU (`regional_catch_summary`) | ✅ In the database; no dashboard yet |
 | SMS / USSD entry | Future work, outside this project |
+
+</details>
 
 ---
 
@@ -327,6 +332,9 @@ The figure traces how a single fisher interaction becomes both a fisher-facing m
 
 <br/>
 
+<details>
+<summary><strong>Compare Palakaya with other tools</strong></summary>
+
 | | Catch logging | Fair-price check | Direct buyers / offers | Payment | AI advice | Offline | Data for BFAR / LGU | Built for PH municipal fishers |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | Consignacion (status quo) | ✕ | ✕ | ✕ | cash via trader | ✕ | n/a | ✕ | ✓ |
@@ -338,6 +346,8 @@ The figure traces how a single fisher interaction becomes both a fisher-facing m
 | **Palakaya** | ✓ | ✓ | ✓ | demo | ✓ | ✓ | data ready, no dashboard yet | ✓ |
 
 Based on the public descriptions of each tool cited in [Background & Problem](#background--problem). "?" means not stated in those sources.
+
+</details>
 
 <div align="center">
   <img src="assets/deck/18-business-model.jpg" alt="Business model" width="900"/>
@@ -445,6 +455,9 @@ The app is a 5-tab shell for fishers (**Home · Catch · Market · Advisor · Pr
 
 ## Data Models
 
+<details>
+<summary><strong>View SwiftData models</strong></summary>
+
 On-device SwiftData models (`Palakaya/Models`):
 
 ```swift
@@ -495,9 +508,14 @@ Offers are not stored on the phone. `Offer` is a plain `Decodable` struct read f
 
 On first launch the app seeds a demo fisher (`Mang Jose Dela Cruz`) with nine sample catches over three weeks (one listed, two available, six sold), so it is explorable right away. Their IDs match `supabase/seed_demo.sql`, so the cloud copy lines up after the first sync.
 
+</details>
+
 ---
 
 ## Cloud Backend
+
+<details>
+<summary><strong>View database objects and access rules</strong></summary>
 
 Supabase (Postgres) tables, views and storage, defined in [`supabase/schema.sql`](supabase/schema.sql) and the numbered migrations:
 
@@ -519,9 +537,14 @@ Supabase (Postgres) tables, views and storage, defined in [`supabase/schema.sql`
 
 Weather for Sea Today comes straight from the free Open-Meteo API, not from Supabase. People who are not logged in cannot read anything in the database. Full setup steps are in [`supabase/SETUP.md`](supabase/SETUP.md).
 
+</details>
+
 ---
 
 ## Design System
+
+<details>
+<summary><strong>View color tokens and sizing guidelines</strong></summary>
 
 Colors come from the Palakaya logo (ocean blue, navy, sea teal) and are centralized in `Components/Theme.swift`.
 
@@ -544,6 +567,8 @@ Colors come from the Palakaya logo (ocean blue, navy, sea teal) and are centrali
 Each token carries a Light and a Dark value, so every screen follows the Appearance setting. Dark Mode uses a night-sea navy rather than black.
 
 Buttons and text fields are at least 48–52 pt tall for easy tapping with wet or gloved hands.
+
+</details>
 
 ---
 
@@ -584,6 +609,9 @@ Without any setup the app runs **fully offline**: your data stays on the phone a
 
 ### Demo accounts
 
+<details>
+<summary><strong>View demo logins and walkthroughs</strong></summary>
+
 After running `supabase/seed_demo.sql`, these accounts work on any phone (password for all: **`password`**):
 
 | Role | Name | Mobile | What to show |
@@ -600,6 +628,8 @@ After running `supabase/seed_demo.sql`, these accounts work on any phone (passwo
 
 The month of demo sales gives every main species (Galunggong, Tamban, Tulingan, Bisugo, Alumahan) a live fair price from at least 5 real sales.
 
+</details>
+
 ---
 
 ## Roadmap
@@ -609,6 +639,9 @@ The month of demo sales gives every main species (Galunggong, Tamban, Tulingan, 
 </div>
 
 <br/>
+
+<details>
+<summary><strong>View completed features</strong></summary>
 
 | Feature | Status |
 |---|---|
@@ -627,6 +660,8 @@ The month of demo sales gives every main species (Galunggong, Tamban, Tulingan, 
 | Catch & income report generation and sharing | ✅ Complete |
 | Native SwiftUI iOS app (MVC) with offline storage | ✅ Complete |
 | Cloud database, login, and two-way sync (Supabase, row-level security) | ✅ Complete |
+
+</details>
 
 **Beyond this project (future work):**
 
